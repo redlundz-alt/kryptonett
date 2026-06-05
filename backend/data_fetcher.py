@@ -1,21 +1,17 @@
-import json
-import urllib.parse
-import urllib.request
+import requests
 
 
 def fetch_candles() -> list[dict]:
-    params = urllib.parse.urlencode({
-        "symbol": "BTCUSDT",
-        "interval": "1h",
-        "limit": 100,
-    })
-    url = f"https://api.binance.com/api/v3/klines?{params}"
-    request = urllib.request.Request(
-        url,
+    response = requests.get(
+        "https://api.binance.com/api/v3/klines",
+        params={
+            "symbol": "BTCUSDT",
+            "interval": "1h",
+            "limit": 100,
+        },
         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
     )
-    with urllib.request.urlopen(request) as response:
-        data = json.loads(response.read())
+    data = response.json()
 
     return [
         {
