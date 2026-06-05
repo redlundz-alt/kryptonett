@@ -15,7 +15,7 @@ def fetch_candles() -> list[dict]:
 
     return [
         {
-            "time": kline[0] // 1000,
+            "time": int(kline[0]) // 1000,
             "open": float(kline[1]),
             "high": float(kline[2]),
             "low": float(kline[3]),
