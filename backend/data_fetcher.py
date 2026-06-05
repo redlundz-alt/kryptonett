@@ -1,6 +1,5 @@
 import requests
 
-
 def fetch_candles() -> list[dict]:
     response = requests.get(
         "https://api.binance.com/api/v3/klines",
@@ -12,7 +11,7 @@ def fetch_candles() -> list[dict]:
         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
     )
     data = response.json()
-
+    print("Binance response:", data)
     return [
         {
             "time": int(kline[0]) // 1000,
