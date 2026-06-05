@@ -10,7 +10,11 @@ def fetch_candles() -> list[dict]:
         "limit": 100,
     })
     url = f"https://api.binance.com/api/v3/klines?{params}"
-    with urllib.request.urlopen(url) as response:
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
+    )
+    with urllib.request.urlopen(request) as response:
         data = json.loads(response.read())
 
     return [
