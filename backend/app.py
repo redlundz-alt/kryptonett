@@ -1,5 +1,7 @@
+import math
 import threading
 import time
+from datetime import datetime, timezone
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -28,34 +30,73 @@ def parse_timeframe():
     return timeframe
 
 
+def seconds_until_next_close(timeframe):
+    intervals = {"15m": 900, "1h": 3600, "4h": 14400, "1d": 86400}
+    interval = intervals[timeframe]
+    now = time.time()
+    next_close = math.ceil(now / interval) * interval
+    remaining = next_close - now
+    if remaining == 0:
+        return interval
+    return remaining
+
+
 def fetch_loop():
     global cached_candles
+
+    try:
+        for timeframe in TIMEFRAMES:
+            candles = fetch_candles(timeframe)
+            add_ema(candles, 9)
+            add_ema(candles, 21)
+            add_atr(candles)
+            add_rsi(candles)
+            cached_candles[timeframe] = candles
+            results = run_strategies(candles, last_signal_state[timeframe])
+            last = candles[-1]
+            for result in results:
+                save_signal(
+                    result["strategy"],
+                    result["signal"],
+                    result["condition"],
+                    last["close"],
+                    last["ema9"],
+                    last["ema21"],
+                    last["time"],
+                    timeframe,
+                )
+            evaluate_outcomes(candles)
+            print(f"Initial fetch {timeframe} at {datetime.now(timezone.utc).isoformat()}")
+    except Exception:
+        pass
+
     while True:
         try:
-            for timeframe in TIMEFRAMES:
-                candles = fetch_candles(timeframe)
-                add_ema(candles, 9)
-                add_ema(candles, 21)
-                add_atr(candles)
-                add_rsi(candles)
-                cached_candles[timeframe] = candles
-                results = run_strategies(candles, last_signal_state[timeframe])
-                last = candles[-1]
-                for result in results:
-                    save_signal(
-                        result["strategy"],
-                        result["signal"],
-                        result["condition"],
-                        last["close"],
-                        last["ema9"],
-                        last["ema21"],
-                        last["time"],
-                        timeframe,
-                    )
-                evaluate_outcomes(candles)
+            next_timeframe = min(TIMEFRAMES, key=seconds_until_next_close)
+            time.sleep(seconds_until_next_close(next_timeframe) + 30)
+            candles = fetch_candles(next_timeframe)
+            add_ema(candles, 9)
+            add_ema(candles, 21)
+            add_atr(candles)
+            add_rsi(candles)
+            cached_candles[next_timeframe] = candles
+            results = run_strategies(candles, last_signal_state[next_timeframe])
+            last = candles[-1]
+            for result in results:
+                save_signal(
+                    result["strategy"],
+                    result["signal"],
+                    result["condition"],
+                    last["close"],
+                    last["ema9"],
+                    last["ema21"],
+                    last["time"],
+                    next_timeframe,
+                )
+            evaluate_outcomes(candles)
+            print(f"Fetched {next_timeframe} at {datetime.now(timezone.utc).isoformat()}")
         except Exception:
             pass
-        time.sleep(300)
 
 
 init_db()
