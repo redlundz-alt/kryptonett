@@ -13,20 +13,19 @@ def fetch_candles() -> list[dict]:
         print("Returning cached data")
         return _cache["data"]
 
-    print("Fetching fresh data from Binance")
+    print("Fetching fresh data from CoinGecko")
     response = requests.get(
-        "https://api.binance.com/api/v3/klines",
+        "https://api.coingecko.com/api/v3/coins/bitcoin/ohlc",
         params={
-            "symbol": "BTCUSDT",
-            "interval": "1h",
-            "limit": 100,
+            "vs_currency": "usd",
+            "days": 7,
         },
         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
     )
     data = response.json()
 
     if not isinstance(data, list):
-        raise ValueError(f"Binance returned unexpected response: {data}")
+        raise ValueError(f"CoinGecko returned unexpected response: {data}")
 
     candles = [
         {
@@ -35,7 +34,6 @@ def fetch_candles() -> list[dict]:
             "high": float(kline[2]),
             "low": float(kline[3]),
             "close": float(kline[4]),
-            "volume": float(kline[5]),
         }
         for kline in data
     ]
