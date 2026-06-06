@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 
 
-def run_strategies(candles: list[dict]) -> list[dict]:
+def run_strategies(candles: list[dict], state: dict) -> list[dict]:
     strategies_dir = Path(__file__).parent / "strategies"
     results = []
 
@@ -11,7 +11,7 @@ def run_strategies(candles: list[dict]) -> list[dict]:
             spec = importlib.util.spec_from_file_location(path.stem, path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            result = module.analyse(candles)
+            result = module.analyse(candles, state)
             results.append({
                 "strategy": path.stem,
                 **result,

@@ -6,26 +6,30 @@ from flask_cors import CORS
 
 from data_fetcher import fetch_candles
 from database import evaluate_outcomes, get_history, get_statistics, init_db, save_signal
-from indicator import add_ema
+from indicator import add_atr, add_ema, add_rsi
 from strategy_runner import run_strategies
 
 app = Flask(__name__)
 CORS(app)
 
 cached_candles = None
+cached_strategy_results = None
+last_signal_state = {"signal": None, "confirmed": False, "crossover_candle": None}
 
 
 def fetch_loop():
-    global cached_candles
+    global cached_candles, cached_strategy_results
     while True:
         try:
             candles = fetch_candles()
             add_ema(candles, 9)
             add_ema(candles, 21)
+            add_atr(candles)
+            add_rsi(candles)
             cached_candles = candles
-            strategies = run_strategies(candles)
+            cached_strategy_results = run_strategies(candles, last_signal_state)
             last = candles[-1]
-            for result in strategies:
+            for result in cached_strategy_results:
                 save_signal(
                     result["strategy"],
                     result["signal"],
@@ -58,10 +62,9 @@ def api_candles():
 
 @app.route("/api/signal")
 def api_signal():
-    if cached_candles is None:
+    if cached_candles is None or cached_strategy_results is None:
         return jsonify({"message": "Data not ready yet"}), 503
-    strategies = run_strategies(cached_candles)
-    result = strategies[0]
+    result = cached_strategy_results[0]
     last = cached_candles[-1]
     return jsonify({
         "strategy": result["strategy"],
@@ -70,6 +73,9 @@ def api_signal():
         "distance_pct": result["distance_pct"],
         "trend": result["trend"],
         "crossover_price": result["crossover_price"],
+        "strength": result["strength"],
+        "rsi": result["rsi"],
+        "awaiting_confirmation": result["awaiting_confirmation"],
         "current_price": last["close"],
         "ema9": last["ema9"],
         "ema21": last["ema21"],
