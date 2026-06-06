@@ -122,16 +122,17 @@ def analyse(candles: list[dict], state: dict) -> dict:
         })
 
     def neutral_waiting():
-        if state.get("retning") == "LONG" and state.get("crossover_bekreftet"):
-            return (
-                f"Bullish trend (Golden Cross aktiv). EMA 50 over EMA 200 "
-                f"({distance_pct}% avstand). Venter på Death Cross for SHORT-signal."
-            )
-        if state.get("retning") == "SHORT" and state.get("crossover_bekreftet"):
-            return (
-                f"Bearish trend (Death Cross aktiv). EMA 50 under EMA 200 "
-                f"({distance_pct}% avstand). Venter på Golden Cross for LONG-signal."
-            )
+        if state.get("crossover_bekreftet") and state.get("retning"):
+            if last["ema50"] > last["ema200"]:
+                return (
+                    f"Bullish trend (Golden Cross aktiv). EMA 50 over EMA 200 "
+                    f"({distance_pct}% avstand). Venter på Death Cross for SHORT-signal."
+                )
+            if last["ema50"] < last["ema200"]:
+                return (
+                    f"Bearish trend (Death Cross aktiv). EMA 50 under EMA 200 "
+                    f"({distance_pct}% avstand). Venter på Golden Cross for LONG-signal."
+                )
         if last["ema50"] > last["ema200"]:
             return f"Bullish trend. EMA 50 over EMA 200 ({distance_pct}% avstand)."
         return f"Bearish trend. EMA 50 under EMA 200 ({distance_pct}% avstand)."
