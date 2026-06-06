@@ -16,7 +16,10 @@ export default function SignalBox({ signal }) {
       <p style={{ margin: '0 0 12px' }}>{signal.condition}</p>
       <p style={{ margin: '0 0 4px' }}>Pris: {signal.current_price.toFixed(2)}</p>
       <p style={{ margin: '0 0 4px' }}>EMA 9: {signal.ema9.toFixed(2)}</p>
-      <p style={{ margin: 0 }}>EMA 21: {signal.ema21.toFixed(2)}</p>
+      <p style={{ margin: '0 0 4px' }}>EMA 21: {signal.ema21.toFixed(2)}</p>
+      <p style={{ margin: '0 0 4px' }}>Avstand: {signal.distance_pct.toFixed(2)}%</p>
+      <p style={{ margin: '0 0 4px' }}>Trend: {signal.trend}</p>
+      <p style={{ margin: 0 }}>Crossover-pris: {signal.crossover_price.toFixed(2)}</p>
     </div>
   );
 }

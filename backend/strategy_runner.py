@@ -14,8 +14,7 @@ def run_strategies(candles: list[dict]) -> list[dict]:
             result = module.analyse(candles)
             results.append({
                 "strategy": path.stem,
-                "signal": result["signal"],
-                "condition": result["condition"],
+                **result,
             })
         except Exception:
             continue
