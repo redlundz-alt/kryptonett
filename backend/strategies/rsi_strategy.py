@@ -84,6 +84,13 @@ def analyse(candles: list[dict], state: dict) -> dict:
             strength,
         )
 
+    def get_tp_sl(signal: str):
+        if last["atr"] is None:
+            return None, None
+        if signal == "LONG":
+            return round(entry + last["atr"], 2), round(entry - last["atr"], 2)
+        return round(entry - last["atr"], 2), round(entry + last["atr"], 2)
+
     def neutral_waiting():
         if rsi_direction == "faller":
             poeng = round(rsi - 30, 1)
@@ -104,20 +111,26 @@ def analyse(candles: list[dict], state: dict) -> dict:
             state["retning"] = "LONG"
             state["crossover_bekreftet"] = True
             condition, strength = build_confirmed_long()
+            tp1, sl = get_tp_sl("LONG")
             return with_updated_state({
                 "signal": "LONG",
                 "condition": condition,
                 "strength": strength,
+                "tp1": tp1,
+                "sl": sl,
                 "awaiting_confirmation": False,
             })
         if rsi > 70:
             state["retning"] = "SHORT"
             state["crossover_bekreftet"] = True
             condition, strength = build_confirmed_short()
+            tp1, sl = get_tp_sl("SHORT")
             return with_updated_state({
                 "signal": "SHORT",
                 "condition": condition,
                 "strength": strength,
+                "tp1": tp1,
+                "sl": sl,
                 "awaiting_confirmation": False,
             })
 
@@ -131,10 +144,13 @@ def analyse(candles: list[dict], state: dict) -> dict:
             if rsi < 30:
                 state["crossover_bekreftet"] = True
                 condition, strength = build_confirmed_long()
+                tp1, sl = get_tp_sl("LONG")
                 return with_updated_state({
                     "signal": "LONG",
                     "condition": condition,
                     "strength": strength,
+                    "tp1": tp1,
+                    "sl": sl,
                     "awaiting_confirmation": False,
                 })
             reset_state()
@@ -149,10 +165,13 @@ def analyse(candles: list[dict], state: dict) -> dict:
             if rsi > 70:
                 state["crossover_bekreftet"] = True
                 condition, strength = build_confirmed_short()
+                tp1, sl = get_tp_sl("SHORT")
                 return with_updated_state({
                     "signal": "SHORT",
                     "condition": condition,
                     "strength": strength,
+                    "tp1": tp1,
+                    "sl": sl,
                     "awaiting_confirmation": False,
                 })
             reset_state()

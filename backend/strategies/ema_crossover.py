@@ -53,6 +53,13 @@ def analyse(candles: list[dict], state: dict) -> dict:
             f"TP1: {tp1}. TP2: {tp2}. SL: {sl}."
         )
 
+    def get_tp_sl(signal: str):
+        if last["atr"] is None:
+            return None, None
+        if signal == "LONG":
+            return round(entry + last["atr"], 2), round(entry - last["atr"], 2)
+        return round(entry - last["atr"], 2), round(entry + last["atr"], 2)
+
     def reset_state():
         state["retning"] = None
         state["crossover_bekreftet"] = False
@@ -115,6 +122,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if state["retning"] == "LONG":
             if close > crossover_price:
                 state["crossover_bekreftet"] = True
+                tp1, sl = get_tp_sl("LONG")
                 return with_updated_state({
                     "signal": "LONG",
                     "condition": build_confirmed_condition("LONG"),
@@ -123,6 +131,8 @@ def analyse(candles: list[dict], state: dict) -> dict:
                     "crossover_price": crossover_price,
                     "strength": get_strength("LONG"),
                     "rsi": rsi_value,
+                    "tp1": tp1,
+                    "sl": sl,
                     "awaiting_confirmation": False,
                 })
             reset_state()
@@ -140,6 +150,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if state["retning"] == "SHORT":
             if close < crossover_price:
                 state["crossover_bekreftet"] = True
+                tp1, sl = get_tp_sl("SHORT")
                 return with_updated_state({
                     "signal": "SHORT",
                     "condition": build_confirmed_condition("SHORT"),
@@ -148,6 +159,8 @@ def analyse(candles: list[dict], state: dict) -> dict:
                     "crossover_price": crossover_price,
                     "strength": get_strength("SHORT"),
                     "rsi": rsi_value,
+                    "tp1": tp1,
+                    "sl": sl,
                     "awaiting_confirmation": False,
                 })
             reset_state()

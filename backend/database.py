@@ -28,7 +28,7 @@ def init_db():
         conn.commit()
 
 
-def save_signal(strategy, signal, condition, price, ema9, ema21, timestamp, timeframe):
+def save_signal(strategy, signal, condition, price, ema9, ema21, timestamp, timeframe, tp1, sl, entry_price):
     if signal not in ("LONG", "SHORT"):
         return
 
@@ -43,57 +43,66 @@ def save_signal(strategy, signal, condition, price, ema9, ema21, timestamp, time
 
             cur.execute(
                 """
-                INSERT INTO signals (strategy, signal, condition, price, ema9, ema21, timestamp, timeframe)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO signals (
+                    strategy, signal, condition, price, ema9, ema21,
+                    timestamp, timeframe, tp1, sl, entry_price
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (strategy, signal, condition, price, ema9, ema21, timestamp, timeframe),
+                (
+                    strategy, signal, condition, price, ema9, ema21,
+                    timestamp, timeframe, tp1, sl, entry_price,
+                ),
             )
         conn.commit()
 
 
 def evaluate_outcomes(current_candles):
-    latest_time = current_candles[-1]["time"]
-    current_price = current_candles[-1]["close"]
-    cutoff = latest_time - 3600
-
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, signal, price
+                SELECT id, signal, timestamp, tp1, sl
                 FROM signals
-                WHERE outcome IS NULL AND timestamp <= %s
+                WHERE outcome IS NULL AND tp1 IS NOT NULL AND sl IS NOT NULL
                 """,
-                (cutoff,),
             )
             rows = cur.fetchall()
 
-            for row_id, signal, price in rows:
-                if signal == "LONG":
-                    if current_price > price:
-                        outcome = "WIN"
-                    elif current_price < price:
-                        outcome = "LOSS"
-                    else:
-                        outcome = "NEUTRAL"
-                elif signal == "SHORT":
-                    if current_price < price:
-                        outcome = "WIN"
-                    elif current_price > price:
-                        outcome = "LOSS"
-                    else:
-                        outcome = "NEUTRAL"
-                else:
-                    continue
+            for row_id, signal, timestamp, tp1, sl in rows:
+                candles_after = [c for c in current_candles if c["time"] > timestamp]
+                outcome = None
+                outcome_price = None
 
-                cur.execute(
-                    """
-                    UPDATE signals
-                    SET outcome = %s, outcome_price = %s
-                    WHERE id = %s
-                    """,
-                    (outcome, current_price, row_id),
-                )
+                for candle in candles_after:
+                    if signal == "LONG":
+                        if candle["low"] <= sl:
+                            outcome = "LOSS"
+                            outcome_price = sl
+                            break
+                        if candle["high"] >= tp1:
+                            outcome = "WIN"
+                            outcome_price = tp1
+                            break
+                    elif signal == "SHORT":
+                        if candle["high"] >= sl:
+                            outcome = "LOSS"
+                            outcome_price = sl
+                            break
+                        if candle["low"] <= tp1:
+                            outcome = "WIN"
+                            outcome_price = tp1
+                            break
+
+                if outcome is not None:
+                    cur.execute(
+                        """
+                        UPDATE signals
+                        SET outcome = %s, outcome_price = %s
+                        WHERE id = %s
+                        """,
+                        (outcome, outcome_price, row_id),
+                    )
         conn.commit()
 
 

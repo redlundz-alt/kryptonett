@@ -70,6 +70,9 @@ def fetch_loop():
                     last["ema21"],
                     last["time"],
                     timeframe,
+                    result.get("tp1"),
+                    result.get("sl"),
+                    last["close"],
                 )
             evaluate_outcomes(candles)
             print(f"Initial fetch {timeframe} at {datetime.now(timezone.utc).isoformat()}")
@@ -108,6 +111,9 @@ def fetch_loop():
                     last["ema21"],
                     last["time"],
                     next_timeframe,
+                    result.get("tp1"),
+                    result.get("sl"),
+                    last["close"],
                 )
             evaluate_outcomes(candles)
             print(f"Fetched {next_timeframe} at {datetime.now(timezone.utc).isoformat()}")
