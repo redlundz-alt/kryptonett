@@ -72,6 +72,22 @@ def add_rsi(candles: list[dict], period: int = 14) -> list[dict]:
     return candles
 
 
+def add_rsi_direction(candles: list[dict]) -> list[dict]:
+    for i, candle in enumerate(candles):
+        if candle.get("rsi") is None:
+            candle["rsi_direction"] = None
+        elif i == 0 or candles[i - 1].get("rsi") is None:
+            candle["rsi_direction"] = "flat"
+        elif candle["rsi"] > candles[i - 1]["rsi"]:
+            candle["rsi_direction"] = "stiger"
+        elif candle["rsi"] < candles[i - 1]["rsi"]:
+            candle["rsi_direction"] = "faller"
+        else:
+            candle["rsi_direction"] = "flat"
+
+    return candles
+
+
 def _ema_values(values: list[float], period: int) -> list[float | None]:
     ema = [None] * len(values)
     if len(values) < period:

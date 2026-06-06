@@ -11,6 +11,7 @@ import { useMarketData } from './hooks/useMarketData.js';
 const STRATEGIES = [
   { id: 'ema_crossover', name: 'EMA Crossover' },
   { id: 'macd', name: 'MACD' },
+  { id: 'rsi_strategy', name: 'RSI' },
 ];
 
 export default function App() {

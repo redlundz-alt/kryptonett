@@ -81,6 +81,7 @@ export default function SignalCard({ signal, strategyName }) {
   const showTradeLevels = signal.signal === 'LONG' || signal.signal === 'SHORT';
   const levels = parseTradeLevels(signal.condition);
   const isMacd = signal.strategy === 'macd';
+  const isRsi = signal.strategy === 'rsi_strategy';
 
   return (
     <div
@@ -149,6 +150,13 @@ export default function SignalCard({ signal, strategyName }) {
               </div>
               <div>RSI: {signal.rsi != null ? signal.rsi : '–'}</div>
             </>
+          ) : isRsi ? (
+            <>
+              <div>RSI: {signal.rsi != null ? signal.rsi : '–'}</div>
+              <div>Retning: {signal.rsi_direction ?? '–'}</div>
+              <div>Til oversold: {signal.distance_to_oversold ?? '–'}</div>
+              <div>Til overbought: {signal.distance_to_overbought ?? '–'}</div>
+            </>
           ) : (
             <>
               <div>EMA 9: {signal.ema9.toFixed(2)}</div>
@@ -158,6 +166,10 @@ export default function SignalCard({ signal, strategyName }) {
             </>
           )}
         </div>
+
+        {isRsi && (signal.signal === 'LONG' || signal.signal === 'SHORT') && signal.strength && (
+          <p style={{ margin: '0 0 12px', fontSize: 13 }}>Styrke: {signal.strength}</p>
+        )}
 
         {showTradeLevels && levels.tp1 && (
           <div style={{ fontSize: 13, marginBottom: 12 }}>

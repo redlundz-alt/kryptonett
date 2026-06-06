@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 from data_fetcher import fetch_candles
 from database import evaluate_outcomes, get_history, get_signal_state, get_statistics, init_db, save_signal, save_signal_state
-from indicator import add_atr, add_ema, add_macd, add_rsi
+from indicator import add_atr, add_ema, add_macd, add_rsi, add_rsi_direction
 from strategy_runner import run_strategies
 
 app = Flask(__name__)
@@ -47,6 +47,7 @@ def fetch_loop():
             add_ema(candles, 21)
             add_atr(candles)
             add_rsi(candles)
+            add_rsi_direction(candles)
             add_macd(candles)
             cached_candles[timeframe] = candles
             state = get_signal_state(timeframe)
@@ -84,6 +85,7 @@ def fetch_loop():
             add_ema(candles, 21)
             add_atr(candles)
             add_rsi(candles)
+            add_rsi_direction(candles)
             add_macd(candles)
             cached_candles[next_timeframe] = candles
             state = get_signal_state(next_timeframe)
@@ -209,6 +211,10 @@ def api_signals():
             signal_obj["macd_histogram"] = result["macd_histogram"]
             signal_obj["momentum"] = result.get("momentum")
             signal_obj["macd_distance_pct"] = result.get("macd_distance_pct")
+        if "rsi_direction" in result:
+            signal_obj["rsi_direction"] = result["rsi_direction"]
+            signal_obj["distance_to_oversold"] = result["distance_to_oversold"]
+            signal_obj["distance_to_overbought"] = result["distance_to_overbought"]
         signals.append(signal_obj)
     return jsonify(signals)
 
