@@ -183,6 +183,30 @@ def analyse(candles: list[dict], state: dict) -> dict:
             })
 
     # FASE 3 - Etter bekreftet signal / NEUTRAL
+    if state.get("crossover_bekreftet") and state.get("retning") == "LONG" and rsi < 30:
+        condition, strength = build_confirmed_long()
+        tp1, sl = get_tp_sl("LONG")
+        return with_updated_state({
+            "signal": "LONG",
+            "condition": condition,
+            "strength": strength,
+            "tp1": tp1,
+            "sl": sl,
+            "awaiting_confirmation": False,
+        })
+
+    if state.get("crossover_bekreftet") and state.get("retning") == "SHORT" and rsi > 70:
+        condition, strength = build_confirmed_short()
+        tp1, sl = get_tp_sl("SHORT")
+        return with_updated_state({
+            "signal": "SHORT",
+            "condition": condition,
+            "strength": strength,
+            "tp1": tp1,
+            "sl": sl,
+            "awaiting_confirmation": False,
+        })
+
     if state.get("crossover_bekreftet") and 30 <= rsi <= 70:
         return with_updated_state({
             "signal": "NEUTRAL",
