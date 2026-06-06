@@ -18,7 +18,7 @@ TIMEFRAMES = ("15m", "1h", "4h", "1d")
 
 cached_candles = {"15m": None, "1h": None, "4h": None, "1d": None}
 last_signal_state = {
-    tf: {"signal": None, "confirmed": False, "crossover_candle": None}
+    tf: {"retning": None, "crossover_bekreftet": False}
     for tf in TIMEFRAMES
 }
 
