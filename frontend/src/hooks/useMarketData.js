@@ -16,8 +16,8 @@ export function useMarketData() {
 
       try {
         const [candlesRes, signalRes] = await Promise.all([
-          fetch('http://localhost:5000/api/candles'),
-          fetch('http://localhost:5000/api/signal'),
+          fetch('https://kryptonett-backend.onrender.com/api/candles'),
+          fetch('https://kryptonett-backend.onrender.com/api/signal'),
         ]);
 
         if (!candlesRes.ok || !signalRes.ok) {
