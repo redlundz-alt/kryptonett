@@ -140,3 +140,35 @@ def get_history(timeframe="1h", limit=50):
             rows = cur.fetchall()
 
     return [dict(zip(columns, row)) for row in rows]
+
+
+def get_signal_state(timeframe):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT retning, crossover_bekreftet FROM signal_state WHERE timeframe = %s",
+                (timeframe,),
+            )
+            row = cur.fetchone()
+
+    if not row:
+        return {"retning": None, "crossover_bekreftet": False}
+
+    return {"retning": row[0], "crossover_bekreftet": row[1]}
+
+
+def save_signal_state(timeframe, retning, crossover_bekreftet):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO signal_state (timeframe, retning, crossover_bekreftet, updated_at)
+                VALUES (%s, %s, %s, NOW())
+                ON CONFLICT (timeframe) DO UPDATE SET
+                    retning = EXCLUDED.retning,
+                    crossover_bekreftet = EXCLUDED.crossover_bekreftet,
+                    updated_at = NOW()
+                """,
+                (timeframe, retning, crossover_bekreftet),
+            )
+        conn.commit()

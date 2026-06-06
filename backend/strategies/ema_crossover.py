@@ -57,6 +57,13 @@ def analyse(candles: list[dict], state: dict) -> dict:
         state["retning"] = None
         state["crossover_bekreftet"] = False
 
+    def with_updated_state(result: dict) -> dict:
+        result["updated_state"] = {
+            "retning": state.get("retning"),
+            "crossover_bekreftet": state.get("crossover_bekreftet", False),
+        }
+        return result
+
     def start_awaiting(retning: str):
         state["retning"] = retning
         state["crossover_bekreftet"] = False
@@ -68,7 +75,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
             condition = (
                 f"SHORT signal detektert. Neste candle må close under {crossover_price} for bekreftelse"
             )
-        return {
+        return with_updated_state({
             "signal": "AWAITING_CONFIRMATION",
             "condition": condition,
             "distance_pct": distance_pct,
@@ -77,7 +84,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
             "strength": None,
             "rsi": rsi_value,
             "awaiting_confirmation": True,
-        }
+        })
 
     def neutral_waiting():
         if trend == "Bearish":
@@ -99,7 +106,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if state["retning"] == "LONG":
             if close > crossover_price:
                 state["crossover_bekreftet"] = True
-                return {
+                return with_updated_state({
                     "signal": "LONG",
                     "condition": build_confirmed_condition("LONG"),
                     "distance_pct": distance_pct,
@@ -108,9 +115,9 @@ def analyse(candles: list[dict], state: dict) -> dict:
                     "strength": get_strength("LONG"),
                     "rsi": rsi_value,
                     "awaiting_confirmation": False,
-                }
+                })
             reset_state()
-            return {
+            return with_updated_state({
                 "signal": "NEUTRAL",
                 "condition": neutral_waiting(),
                 "distance_pct": distance_pct,
@@ -119,12 +126,12 @@ def analyse(candles: list[dict], state: dict) -> dict:
                 "strength": None,
                 "rsi": rsi_value,
                 "awaiting_confirmation": False,
-            }
+            })
 
         if state["retning"] == "SHORT":
             if close < crossover_price:
                 state["crossover_bekreftet"] = True
-                return {
+                return with_updated_state({
                     "signal": "SHORT",
                     "condition": build_confirmed_condition("SHORT"),
                     "distance_pct": distance_pct,
@@ -133,9 +140,9 @@ def analyse(candles: list[dict], state: dict) -> dict:
                     "strength": get_strength("SHORT"),
                     "rsi": rsi_value,
                     "awaiting_confirmation": False,
-                }
+                })
             reset_state()
-            return {
+            return with_updated_state({
                 "signal": "NEUTRAL",
                 "condition": neutral_waiting(),
                 "distance_pct": distance_pct,
@@ -144,14 +151,14 @@ def analyse(candles: list[dict], state: dict) -> dict:
                 "strength": None,
                 "rsi": rsi_value,
                 "awaiting_confirmation": False,
-            }
+            })
 
     # FASE 3 - Etter bekreftet signal
     if state.get("crossover_bekreftet") and state.get("retning") == "LONG":
         if ema9_crossed_below:
             return start_awaiting("SHORT")
         if last["ema9"] > last["ema21"]:
-            return {
+            return with_updated_state({
                 "signal": "NEUTRAL",
                 "condition": (
                     f"Bullish trend bekreftet. Venter på SHORT-signal. "
@@ -163,13 +170,13 @@ def analyse(candles: list[dict], state: dict) -> dict:
                 "strength": None,
                 "rsi": rsi_value,
                 "awaiting_confirmation": False,
-            }
+            })
 
     if state.get("crossover_bekreftet") and state.get("retning") == "SHORT":
         if ema9_crossed_above:
             return start_awaiting("LONG")
         if last["ema9"] < last["ema21"]:
-            return {
+            return with_updated_state({
                 "signal": "NEUTRAL",
                 "condition": (
                     f"Bearish trend bekreftet. Venter på LONG-signal. "
@@ -181,7 +188,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
                 "strength": None,
                 "rsi": rsi_value,
                 "awaiting_confirmation": False,
-            }
+            })
 
     # FASE 1 - Crossover detektert
     if ema9_crossed_above:
@@ -200,7 +207,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
             condition = (
                 f"SHORT signal detektert. Neste candle må close under {crossover_price} for bekreftelse"
             )
-        return {
+        return with_updated_state({
             "signal": "AWAITING_CONFIRMATION",
             "condition": condition,
             "distance_pct": distance_pct,
@@ -209,10 +216,10 @@ def analyse(candles: list[dict], state: dict) -> dict:
             "strength": None,
             "rsi": rsi_value,
             "awaiting_confirmation": True,
-        }
+        })
 
     reset_state()
-    return {
+    return with_updated_state({
         "signal": "NEUTRAL",
         "condition": neutral_waiting(),
         "distance_pct": distance_pct,
@@ -221,4 +228,4 @@ def analyse(candles: list[dict], state: dict) -> dict:
         "strength": None,
         "rsi": rsi_value,
         "awaiting_confirmation": False,
-    }
+    })
