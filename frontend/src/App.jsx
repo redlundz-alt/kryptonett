@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AffiliateSection from './components/AffiliateSection.jsx';
 import Chart from './components/Chart.jsx';
 import ConfluenceBox from './components/ConfluenceBox.jsx';
 import History from './components/History.jsx';
@@ -82,6 +83,8 @@ export default function App() {
           </div>
 
           <ConfluenceBox signals={activeSignals} />
+
+          <AffiliateSection />
 
           <div style={{ marginTop: 16 }}>
             <h2 style={{ margin: '0 0 8px' }}>Statistikk</h2>

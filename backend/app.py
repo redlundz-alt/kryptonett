@@ -3,6 +3,8 @@ import threading
 import time
 from datetime import datetime, timezone
 
+from pathlib import Path
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
@@ -17,6 +19,14 @@ CORS(app)
 TIMEFRAMES = ("15m", "1h", "4h", "1d")
 
 cached_candles = {"15m": None, "1h": None, "4h": None, "1d": None}
+STRATEGIES_DIR = Path(__file__).parent / "strategies"
+
+
+def load_strategy_states(timeframe):
+    return {
+        path.stem: get_signal_state(timeframe, path.stem)
+        for path in sorted(STRATEGIES_DIR.glob("*.py"))
+    }
 
 
 def parse_timeframe():
@@ -51,12 +61,13 @@ def fetch_loop():
             add_macd(candles)
             add_ema_long(candles)
             cached_candles[timeframe] = candles
-            state = get_signal_state(timeframe)
-            results = run_strategies(candles, state)
-            if results:
-                updated = results[0]["updated_state"]
+            states = load_strategy_states(timeframe)
+            results = run_strategies(candles, states)
+            for result in results:
+                updated = result["updated_state"]
                 save_signal_state(
                     timeframe,
+                    result["strategy"],
                     updated["retning"],
                     updated["crossover_bekreftet"],
                 )
@@ -93,12 +104,13 @@ def fetch_loop():
             add_macd(candles)
             add_ema_long(candles)
             cached_candles[next_timeframe] = candles
-            state = get_signal_state(next_timeframe)
-            results = run_strategies(candles, state)
-            if results:
-                updated = results[0]["updated_state"]
+            states = load_strategy_states(next_timeframe)
+            results = run_strategies(candles, states)
+            for result in results:
+                updated = result["updated_state"]
                 save_signal_state(
                     next_timeframe,
+                    result["strategy"],
                     updated["retning"],
                     updated["crossover_bekreftet"],
                 )
@@ -148,12 +160,13 @@ def api_signal():
         return jsonify({"message": "Invalid timeframe"}), 400
     if cached_candles[timeframe] is None:
         return jsonify({"message": "Data not ready yet"}), 503
-    state = get_signal_state(timeframe)
-    results = run_strategies(cached_candles[timeframe], state)
-    if results:
-        updated = results[0]["updated_state"]
+    states = load_strategy_states(timeframe)
+    results = run_strategies(cached_candles[timeframe], states)
+    for result in results:
+        updated = result["updated_state"]
         save_signal_state(
             timeframe,
+            result["strategy"],
             updated["retning"],
             updated["crossover_bekreftet"],
         )
@@ -184,12 +197,13 @@ def api_signals():
         return jsonify({"message": "Invalid timeframe"}), 400
     if cached_candles[timeframe] is None:
         return jsonify({"message": "Data not ready yet"}), 503
-    state = get_signal_state(timeframe)
-    results = run_strategies(cached_candles[timeframe], state)
-    if results:
-        updated = results[0]["updated_state"]
+    states = load_strategy_states(timeframe)
+    results = run_strategies(cached_candles[timeframe], states)
+    for result in results:
+        updated = result["updated_state"]
         save_signal_state(
             timeframe,
+            result["strategy"],
             updated["retning"],
             updated["crossover_bekreftet"],
         )

@@ -151,12 +151,16 @@ def get_history(timeframe="1h", limit=50):
     return [dict(zip(columns, row)) for row in rows]
 
 
-def get_signal_state(timeframe):
+def get_signal_state(timeframe, strategy):
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT retning, crossover_bekreftet FROM signal_state WHERE timeframe = %s",
-                (timeframe,),
+                """
+                SELECT retning, crossover_bekreftet
+                FROM signal_state
+                WHERE timeframe = %s AND strategy = %s
+                """,
+                (timeframe, strategy),
             )
             row = cur.fetchone()
 
@@ -166,18 +170,18 @@ def get_signal_state(timeframe):
     return {"retning": row[0], "crossover_bekreftet": row[1]}
 
 
-def save_signal_state(timeframe, retning, crossover_bekreftet):
+def save_signal_state(timeframe, strategy, retning, crossover_bekreftet):
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO signal_state (timeframe, retning, crossover_bekreftet, updated_at)
-                VALUES (%s, %s, %s, NOW())
-                ON CONFLICT (timeframe) DO UPDATE SET
+                INSERT INTO signal_state (timeframe, strategy, retning, crossover_bekreftet, updated_at)
+                VALUES (%s, %s, %s, %s, NOW())
+                ON CONFLICT (timeframe, strategy) DO UPDATE SET
                     retning = EXCLUDED.retning,
                     crossover_bekreftet = EXCLUDED.crossover_bekreftet,
                     updated_at = NOW()
                 """,
-                (timeframe, retning, crossover_bekreftet),
+                (timeframe, strategy, retning, crossover_bekreftet),
             )
         conn.commit()
