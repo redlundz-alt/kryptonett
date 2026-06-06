@@ -29,9 +29,9 @@ function formatCountdown(seconds) {
 }
 
 function parseTradeLevels(condition) {
-  const tp1 = condition.match(/Take profit 1: ([\d.]+)/);
-  const tp2 = condition.match(/Take profit 2: ([\d.]+)/);
-  const sl = condition.match(/Stop loss: ([\d.]+)/);
+  const tp1 = condition.match(/(?:Take profit 1|TP1): ([\d.]+)/);
+  const tp2 = condition.match(/(?:Take profit 2|TP2): ([\d.]+)/);
+  const sl = condition.match(/(?:Stop loss|SL): ([\d.]+)/);
   return {
     tp1: tp1 ? tp1[1] : null,
     tp2: tp2 ? tp2[1] : null,
@@ -80,6 +80,7 @@ export default function SignalCard({ signal, strategyName }) {
     signal.current_price < signal.crossover_price;
   const showTradeLevels = signal.signal === 'LONG' || signal.signal === 'SHORT';
   const levels = parseTradeLevels(signal.condition);
+  const isMacd = signal.strategy === 'macd';
 
   return (
     <div
@@ -132,10 +133,27 @@ export default function SignalCard({ signal, strategyName }) {
             fontSize: 13,
           }}
         >
-          <div>EMA 9: {signal.ema9.toFixed(2)}</div>
-          <div>EMA 21: {signal.ema21.toFixed(2)}</div>
-          <div>RSI: {signal.rsi != null ? signal.rsi : '–'}</div>
-          <div>Avstand: {signal.distance_pct.toFixed(2)}%</div>
+          {isMacd ? (
+            <>
+              <div>MACD: {signal.macd != null ? signal.macd : '–'}</div>
+              <div>Signal: {signal.macd_signal != null ? signal.macd_signal : '–'}</div>
+              <div
+                style={{
+                  color: signal.macd_histogram > 0 ? '#22c55e' : '#ef4444',
+                }}
+              >
+                Histogram: {signal.macd_histogram != null ? signal.macd_histogram : '–'}
+              </div>
+              <div>RSI: {signal.rsi != null ? signal.rsi : '–'}</div>
+            </>
+          ) : (
+            <>
+              <div>EMA 9: {signal.ema9.toFixed(2)}</div>
+              <div>EMA 21: {signal.ema21.toFixed(2)}</div>
+              <div>RSI: {signal.rsi != null ? signal.rsi : '–'}</div>
+              <div>Avstand: {signal.distance_pct.toFixed(2)}%</div>
+            </>
+          )}
         </div>
 
         {showTradeLevels && levels.tp1 && (

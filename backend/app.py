@@ -8,7 +8,7 @@ from flask_cors import CORS
 
 from data_fetcher import fetch_candles
 from database import evaluate_outcomes, get_history, get_signal_state, get_statistics, init_db, save_signal, save_signal_state
-from indicator import add_atr, add_ema, add_rsi
+from indicator import add_atr, add_ema, add_macd, add_rsi
 from strategy_runner import run_strategies
 
 app = Flask(__name__)
@@ -47,6 +47,7 @@ def fetch_loop():
             add_ema(candles, 21)
             add_atr(candles)
             add_rsi(candles)
+            add_macd(candles)
             cached_candles[timeframe] = candles
             state = get_signal_state(timeframe)
             results = run_strategies(candles, state)
@@ -83,6 +84,7 @@ def fetch_loop():
             add_ema(candles, 21)
             add_atr(candles)
             add_rsi(candles)
+            add_macd(candles)
             cached_candles[next_timeframe] = candles
             state = get_signal_state(next_timeframe)
             results = run_strategies(candles, state)

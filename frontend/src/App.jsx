@@ -8,7 +8,10 @@ import StrategySelector from './components/StrategySelector.jsx';
 import TimeframeSelector from './components/TimeframeSelector.jsx';
 import { useMarketData } from './hooks/useMarketData.js';
 
-const STRATEGIES = [{ id: 'ema_crossover', name: 'EMA Crossover' }];
+const STRATEGIES = [
+  { id: 'ema_crossover', name: 'EMA Crossover' },
+  { id: 'macd', name: 'MACD' },
+];
 
 export default function App() {
   const [timeframe, setTimeframe] = useState('1h');

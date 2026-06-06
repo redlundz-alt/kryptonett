@@ -70,3 +70,51 @@ def add_rsi(candles: list[dict], period: int = 14) -> list[dict]:
             candles[i]["rsi"] = 100 - (100 / (1 + rs))
 
     return candles
+
+
+def _ema_values(values: list[float], period: int) -> list[float | None]:
+    ema = [None] * len(values)
+    if len(values) < period:
+        return ema
+
+    ema[period - 1] = sum(values[:period]) / period
+    multiplier = 2 / (period + 1)
+    for i in range(period, len(values)):
+        ema[i] = values[i] * multiplier + ema[i - 1] * (1 - multiplier)
+    return ema
+
+
+def add_macd(candles: list[dict]) -> list[dict]:
+    null_count = 33
+    closes = [c["close"] for c in candles]
+    ema12 = _ema_values(closes, 12)
+    ema26 = _ema_values(closes, 26)
+
+    macd_line = [
+        ema12[i] - ema26[i] if ema12[i] is not None and ema26[i] is not None else None
+        for i in range(len(candles))
+    ]
+
+    macd_signal_line = [None] * len(candles)
+    macd_indices = [i for i, value in enumerate(macd_line) if value is not None]
+    if len(macd_indices) >= 9:
+        macd_values = [macd_line[i] for i in macd_indices]
+        signal_ema = _ema_values(macd_values, 9)
+        for idx, signal_value in zip(macd_indices, signal_ema):
+            if signal_value is not None:
+                macd_signal_line[idx] = signal_value
+
+    for i, candle in enumerate(candles):
+        if i < null_count:
+            candle["macd"] = None
+            candle["macd_signal"] = None
+            candle["macd_histogram"] = None
+        else:
+            candle["macd"] = macd_line[i]
+            candle["macd_signal"] = macd_signal_line[i]
+            if macd_line[i] is not None and macd_signal_line[i] is not None:
+                candle["macd_histogram"] = macd_line[i] - macd_signal_line[i]
+            else:
+                candle["macd_histogram"] = None
+
+    return candles
