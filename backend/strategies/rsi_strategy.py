@@ -8,12 +8,8 @@ def analyse(candles: list[dict], state: dict) -> dict:
     rsi_direction = last.get("rsi_direction") or "flat"
     close = last["close"]
     entry = round(close, 2)
-    distance_to_oversold = (
-        f"Allerede oversold ({rsi_value})" if rsi < 30 else round(rsi - 30, 1)
-    )
-    distance_to_overbought = (
-        f"Allerede overbought ({rsi_value})" if rsi > 70 else round(70 - rsi, 1)
-    )
+    distance_to_oversold = "Allerede oversold" if rsi < 30 else round(rsi - 30, 1)
+    distance_to_overbought = "Allerede overbought" if rsi > 70 else round(70 - rsi, 1)
 
     crossed_under_30 = prev["rsi"] >= 30 and rsi < 30
     crossed_over_70 = prev["rsi"] <= 70 and rsi > 70

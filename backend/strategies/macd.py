@@ -147,6 +147,15 @@ def analyse(candles: list[dict], state: dict) -> dict:
             f"Momentum forsterkes ({avstand}% avstand)."
         )
 
+    # Oppstart-sjekk
+    if state.get("retning") is None:
+        if last["macd"] > last["macd_signal"]:
+            state["retning"] = "SHORT"
+            state["crossover_bekreftet"] = True
+        elif last["macd"] < last["macd_signal"]:
+            state["retning"] = "LONG"
+            state["crossover_bekreftet"] = True
+
     # FASE 2 - Bekreftelse
     if (
         state.get("retning")

@@ -97,6 +97,15 @@ def analyse(candles: list[dict], state: dict) -> dict:
             f"EMA 9 må krysse under {crossover_price}"
         )
 
+    # Oppstart-sjekk
+    if state.get("retning") is None:
+        if last["ema9"] > last["ema21"]:
+            state["retning"] = "SHORT"
+            state["crossover_bekreftet"] = True
+        elif last["ema9"] < last["ema21"]:
+            state["retning"] = "LONG"
+            state["crossover_bekreftet"] = True
+
     # FASE 2 - Bekreftelse (neste candle etter crossover)
     if (
         state.get("retning")
