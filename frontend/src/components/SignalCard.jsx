@@ -123,9 +123,6 @@ export default function SignalCard({ signal, strategyName }) {
         )}
 
         <p style={{ margin: '0 0 12px', fontSize: 14, lineHeight: 1.4 }}>{signal.condition}</p>
-        {isMacd && signal.momentum && (
-          <p style={{ margin: '0 0 8px', fontSize: 13, color: '#666' }}>Momentum: {signal.momentum}</p>
-        )}
         {isMacd && signal.macd_distance_pct != null && (
           <p style={{ margin: '0 0 12px', fontSize: 13 }}>Avstand MACD/Signal: {signal.macd_distance_pct}%</p>
         )}

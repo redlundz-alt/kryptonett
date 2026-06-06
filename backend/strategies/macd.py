@@ -101,13 +101,50 @@ def analyse(candles: list[dict], state: dict) -> dict:
         })
 
     def neutral_waiting():
+        avstand = macd_distance_pct
+        far = avstand > 5
+        svekkes = momentum.startswith("svekkes")
+        forsterkes = momentum.startswith("forsterkes")
+
         if last["macd"] > last["macd_signal"]:
-            trend_text = f"Bullish trend. MACD over Signal-linje ({macd_value})"
-        else:
-            trend_text = f"Bearish trend. MACD under Signal-linje ({macd_value})"
+            if far and svekkes:
+                return (
+                    "Bullish trend. MACD over Signal-linje. "
+                    f"Momentum svekkes men crossover er ikke nært ({avstand}% avstand)."
+                )
+            if far and forsterkes:
+                return (
+                    "Bullish trend. MACD over Signal-linje. "
+                    f"Momentum forsterkes — crossover usannsynlig nå ({avstand}% avstand)."
+                )
+            if not far and svekkes:
+                return (
+                    f"Bullish trend. MACD nærmer seg Signal-linje ({avstand}% avstand) "
+                    "— crossover kan komme snart."
+                )
+            return (
+                "Bullish trend. MACD over Signal-linje. "
+                f"Momentum forsterkes ({avstand}% avstand)."
+            )
+
+        if far and svekkes:
+            return (
+                "Bearish trend. MACD under Signal-linje. "
+                f"Momentum svekkes men crossover er ikke nært ({avstand}% avstand)."
+            )
+        if far and forsterkes:
+            return (
+                "Bearish trend. MACD under Signal-linje. "
+                f"Momentum forsterkes — crossover usannsynlig nå ({avstand}% avstand)."
+            )
+        if not far and svekkes:
+            return (
+                f"Bearish trend. MACD nærmer seg Signal-linje ({avstand}% avstand) "
+                "— crossover kan komme snart."
+            )
         return (
-            f"{trend_text}. Momentum {momentum}. "
-            f"Avstand: {macd_distance_pct}% — crossover krever betydelig bevegelse"
+            "Bearish trend. MACD under Signal-linje. "
+            f"Momentum forsterkes ({avstand}% avstand)."
         )
 
     # FASE 2 - Bekreftelse
