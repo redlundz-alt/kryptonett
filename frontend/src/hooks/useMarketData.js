@@ -4,7 +4,7 @@ const BASE_URL = 'https://kryptonett-backend.onrender.com';
 
 export function useMarketData(timeframe) {
   const [candles, setCandles] = useState([]);
-  const [signal, setSignal] = useState(null);
+  const [signals, setSignals] = useState([]);
   const [history, setHistory] = useState(null);
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,19 +23,19 @@ export function useMarketData(timeframe) {
 
       try {
         const query = `?timeframe=${timeframe}`;
-        const [candlesRes, signalRes, historyRes, statisticsRes] = await Promise.all([
+        const [candlesRes, signalsRes, historyRes, statisticsRes] = await Promise.all([
           fetch(`${BASE_URL}/api/candles${query}`),
-          fetch(`${BASE_URL}/api/signal${query}`),
+          fetch(`${BASE_URL}/api/signals${query}`),
           fetch(`${BASE_URL}/api/history${query}`),
           fetch(`${BASE_URL}/api/statistics${query}`),
         ]);
 
-        if (!candlesRes.ok || !signalRes.ok || !historyRes.ok || !statisticsRes.ok) {
+        if (!candlesRes.ok || !signalsRes.ok || !historyRes.ok || !statisticsRes.ok) {
           throw new Error('Failed to fetch market data');
         }
 
         const candlesData = await candlesRes.json();
-        const signalData = await signalRes.json();
+        const signalsData = await signalsRes.json();
         const historyData = await historyRes.json();
         const statisticsData = await statisticsRes.json();
         const latestTimestamp = candlesData.candles[candlesData.candles.length - 1]?.time;
@@ -45,7 +45,7 @@ export function useMarketData(timeframe) {
         if (!cancelled && dataChanged) {
           prevCandleTimestampRef.current = latestTimestamp;
           setCandles(candlesData.candles);
-          setSignal(signalData);
+          setSignals(signalsData);
           setHistory(historyData);
           setStatistics(statisticsData);
           setLastUpdated(new Date());
@@ -71,5 +71,5 @@ export function useMarketData(timeframe) {
     };
   }, [timeframe]);
 
-  return { candles, signal, history, statistics, loading, error, lastUpdated };
+  return { candles, signals, history, statistics, loading, error, lastUpdated };
 }

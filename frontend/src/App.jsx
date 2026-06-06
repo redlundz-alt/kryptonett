@@ -16,10 +16,9 @@ const STRATEGIES = [
 export default function App() {
   const [timeframe, setTimeframe] = useState('1h');
   const [selectedStrategies, setSelectedStrategies] = useState(['ema_crossover']);
-  const { candles, signal, history, statistics, loading, error, lastUpdated } = useMarketData(timeframe);
+  const { candles, signals, history, statistics, loading, error, lastUpdated } = useMarketData(timeframe);
 
-  const activeSignals =
-    signal && selectedStrategies.includes(signal.strategy) ? [signal] : [];
+  const activeSignals = signals.filter((s) => selectedStrategies.includes(s.strategy));
 
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
@@ -66,7 +65,8 @@ export default function App() {
           >
             {selectedStrategies.map((strategyId) => {
               const strategy = STRATEGIES.find((s) => s.id === strategyId);
-              if (!strategy || !signal || signal.strategy !== strategyId) {
+              const signal = signals.find((s) => s.strategy === strategyId);
+              if (!strategy || !signal) {
                 return null;
               }
               return (

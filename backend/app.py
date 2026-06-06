@@ -167,6 +167,50 @@ def api_signal():
     })
 
 
+@app.route("/api/signals")
+def api_signals():
+    timeframe = parse_timeframe()
+    if timeframe is None:
+        return jsonify({"message": "Invalid timeframe"}), 400
+    if cached_candles[timeframe] is None:
+        return jsonify({"message": "Data not ready yet"}), 503
+    state = get_signal_state(timeframe)
+    results = run_strategies(cached_candles[timeframe], state)
+    if results:
+        updated = results[0]["updated_state"]
+        save_signal_state(
+            timeframe,
+            updated["retning"],
+            updated["crossover_bekreftet"],
+        )
+    last = cached_candles[timeframe][-1]
+    signals = []
+    for result in results:
+        signal_obj = {
+            "strategy": result["strategy"],
+            "signal": result["signal"],
+            "condition": result["condition"],
+            "strength": result.get("strength"),
+            "rsi": result.get("rsi"),
+            "awaiting_confirmation": result.get("awaiting_confirmation", False),
+            "timeframe": timeframe,
+            "current_price": last["close"],
+            "timestamp": last["time"],
+        }
+        if "distance_pct" in result:
+            signal_obj["distance_pct"] = result["distance_pct"]
+            signal_obj["trend"] = result["trend"]
+            signal_obj["crossover_price"] = result["crossover_price"]
+            signal_obj["ema9"] = last["ema9"]
+            signal_obj["ema21"] = last["ema21"]
+        if "macd" in result:
+            signal_obj["macd"] = result["macd"]
+            signal_obj["macd_signal"] = result["macd_signal"]
+            signal_obj["macd_histogram"] = result["macd_histogram"]
+        signals.append(signal_obj)
+    return jsonify(signals)
+
+
 @app.route("/api/history")
 def api_history():
     timeframe = parse_timeframe()
