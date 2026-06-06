@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const BASE_URL = 'https://kryptonett-backend.onrender.com';
 
@@ -9,9 +9,12 @@ export function useMarketData(timeframe) {
   const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const prevCandleTimestampRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
+    prevCandleTimestampRef.current = null;
 
     async function fetchData(isInitial) {
       if (isInitial) {
@@ -35,12 +38,17 @@ export function useMarketData(timeframe) {
         const signalData = await signalRes.json();
         const historyData = await historyRes.json();
         const statisticsData = await statisticsRes.json();
+        const latestTimestamp = candlesData.candles[candlesData.candles.length - 1]?.time;
+        const dataChanged =
+          isInitial || latestTimestamp !== prevCandleTimestampRef.current;
 
-        if (!cancelled) {
+        if (!cancelled && dataChanged) {
+          prevCandleTimestampRef.current = latestTimestamp;
           setCandles(candlesData.candles);
           setSignal(signalData);
           setHistory(historyData);
           setStatistics(statisticsData);
+          setLastUpdated(new Date());
           setError(null);
         }
       } catch (err) {
@@ -55,7 +63,7 @@ export function useMarketData(timeframe) {
     }
 
     fetchData(true);
-    const interval = setInterval(() => fetchData(false), 5 * 60 * 1000);
+    const interval = setInterval(() => fetchData(false), 60 * 1000);
 
     return () => {
       cancelled = true;
@@ -63,5 +71,5 @@ export function useMarketData(timeframe) {
     };
   }, [timeframe]);
 
-  return { candles, signal, history, statistics, loading, error };
+  return { candles, signal, history, statistics, loading, error, lastUpdated };
 }
