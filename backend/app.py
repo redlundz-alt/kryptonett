@@ -1,3 +1,6 @@
+import threading
+import time
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 
@@ -8,27 +11,43 @@ from strategy_runner import run_strategies
 app = Flask(__name__)
 CORS(app)
 
+cached_candles = None
+
+
+def fetch_loop():
+    global cached_candles
+    while True:
+        try:
+            candles = fetch_candles()
+            add_ema(candles, 9)
+            add_ema(candles, 21)
+            cached_candles = candles
+        except Exception:
+            pass
+        time.sleep(300)
+
+
+threading.Thread(target=fetch_loop, daemon=True).start()
+
 
 @app.route("/api/candles")
 def api_candles():
-    candles = fetch_candles()
-    add_ema(candles, 9)
-    add_ema(candles, 21)
+    if cached_candles is None:
+        return jsonify({"message": "Data not ready yet"}), 503
     return jsonify({
         "symbol": "BTCUSDT",
         "timeframe": "1h",
-        "candles": candles,
+        "candles": cached_candles,
     })
 
 
 @app.route("/api/signal")
 def api_signal():
-    candles = fetch_candles()
-    add_ema(candles, 9)
-    add_ema(candles, 21)
-    strategies = run_strategies(candles)
+    if cached_candles is None:
+        return jsonify({"message": "Data not ready yet"}), 503
+    strategies = run_strategies(cached_candles)
     result = strategies[0]
-    last = candles[-1]
+    last = cached_candles[-1]
     return jsonify({
         "strategy": result["strategy"],
         "signal": result["signal"],
