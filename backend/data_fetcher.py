@@ -11,7 +11,7 @@ def fetch_candles(timeframe: str = "1h") -> list[dict]:
             "interval": INTERVALS[timeframe],
         },
     )
-    rows = response.json()["result"]["XXBTZUSD"]
+    rows = response.json()["result"]["XXBTZUSD"][-201:]
 
     return [
         {

@@ -82,6 +82,7 @@ export default function SignalCard({ signal, strategyName }) {
   const levels = parseTradeLevels(signal.condition);
   const isMacd = signal.strategy === 'macd';
   const isRsi = signal.strategy === 'rsi_strategy';
+  const isGoldenCross = signal.strategy === 'golden_cross';
 
   return (
     <div
@@ -127,6 +128,9 @@ export default function SignalCard({ signal, strategyName }) {
         {isMacd && signal.macd_distance_pct != null && (
           <p style={{ margin: '0 0 12px', fontSize: 13 }}>Avstand MACD/Signal: {signal.macd_distance_pct}%</p>
         )}
+        {isGoldenCross && signal.distance_pct != null && (
+          <p style={{ margin: '0 0 12px', fontSize: 13 }}>Avstand EMA 50/200: {signal.distance_pct}%</p>
+        )}
 
         <div
           style={{
@@ -156,6 +160,11 @@ export default function SignalCard({ signal, strategyName }) {
               <div>Retning: {signal.rsi_direction ?? '–'}</div>
               <div>Til oversold: {signal.distance_to_oversold ?? '–'}</div>
               <div>Til overbought: {signal.distance_to_overbought ?? '–'}</div>
+            </>
+          ) : isGoldenCross ? (
+            <>
+              <div>EMA 50: {signal.ema50 != null ? signal.ema50 : '–'}</div>
+              <div>EMA 200: {signal.ema200 != null ? signal.ema200 : '–'}</div>
             </>
           ) : (
             <>

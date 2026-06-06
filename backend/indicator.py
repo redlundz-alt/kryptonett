@@ -72,6 +72,12 @@ def add_rsi(candles: list[dict], period: int = 14) -> list[dict]:
     return candles
 
 
+def add_ema_long(candles: list[dict]) -> list[dict]:
+    add_ema(candles, 50)
+    add_ema(candles, 200)
+    return candles
+
+
 def add_rsi_direction(candles: list[dict]) -> list[dict]:
     for i, candle in enumerate(candles):
         if candle.get("rsi") is None:
