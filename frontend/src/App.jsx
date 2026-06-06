@@ -6,7 +6,6 @@ import History from './components/History.jsx';
 import SignalCard from './components/SignalCard.jsx';
 import Statistics from './components/Statistics.jsx';
 import StrategySelector from './components/StrategySelector.jsx';
-import TimeframeSelector from './components/TimeframeSelector.jsx';
 import { useMarketData } from './hooks/useMarketData.js';
 
 const STRATEGIES = [
@@ -14,6 +13,13 @@ const STRATEGIES = [
   { id: 'macd', name: 'MACD' },
   { id: 'rsi_strategy', name: 'RSI' },
   { id: 'golden_cross', name: 'Golden Cross' },
+];
+
+const TIMEFRAMES = [
+  { value: '15m', label: '15m' },
+  { value: '1h', label: '1H' },
+  { value: '4h', label: '4H' },
+  { value: '1d', label: '1D' },
 ];
 
 export default function App() {
@@ -25,25 +31,118 @@ export default function App() {
 
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
+      <style>
+        {`
+          @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+          }
+        `}
+      </style>
+
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto',
+          gap: 16,
           marginBottom: 16,
-          flexWrap: 'wrap',
-          gap: 8,
+          alignItems: 'start',
         }}
       >
-        <h1 style={{ margin: 0 }}>kryptonett.no</h1>
-        {lastUpdated && (
-          <span style={{ fontSize: 14, color: '#666' }}>
-            Sist oppdatert: {lastUpdated.toLocaleTimeString('no-NO')}
+        <div>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 28,
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-block',
+                width: 8,
+                height: '1em',
+                backgroundColor: '#f7931a',
+                borderRadius: 2,
+                flexShrink: 0,
+              }}
+            />
+            kryptonett.no
+          </h1>
+          <p style={{ margin: '8px 0 0 18px', fontSize: 13, color: '#666', lineHeight: 1.4 }}>
+            Teknisk analyse av Bitcoin i sanntid — EMA Crossover, MACD, RSI og Golden Cross
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: 6,
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 12px',
+              backgroundColor: '#dcfce7',
+              color: '#166534',
+              borderRadius: 999,
+              fontSize: 13,
+              fontWeight: 'bold',
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: '#22c55e',
+                animation: 'livePulse 1.5s ease-in-out infinite',
+              }}
+            />
+            Live
+          </div>
+          {lastUpdated && (
+            <span style={{ fontSize: 13, color: '#666' }}>
+              Sist oppdatert: {lastUpdated.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+          <span style={{ fontSize: 13, color: '#666' }}>
+            BTC/USD · {selectedStrategies.length} strategier aktive
           </span>
-        )}
+        </div>
       </div>
 
-      <TimeframeSelector selectedTimeframe={timeframe} onSelect={setTimeframe} />
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {TIMEFRAMES.map(({ value, label }) => {
+          const isActive = timeframe === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTimeframe(value)}
+              style={{
+                padding: '8px 16px',
+                border: isActive ? '2px solid #f7931a' : '1px solid #ccc',
+                borderRadius: 4,
+                backgroundColor: isActive ? '#f7931a' : '#f3f4f6',
+                color: isActive ? '#fff' : '#666',
+                fontWeight: isActive ? 'bold' : 'normal',
+                cursor: 'pointer',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
 
       <StrategySelector
         strategies={STRATEGIES}
