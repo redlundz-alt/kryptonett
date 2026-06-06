@@ -28,25 +28,25 @@ def init_db():
         conn.commit()
 
 
-def save_signal(strategy, signal, condition, price, ema9, ema21, timestamp):
+def save_signal(strategy, signal, condition, price, ema9, ema21, timestamp, timeframe):
     if signal not in ("LONG", "SHORT"):
         return
 
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT 1 FROM signals WHERE strategy = %s AND timestamp = %s",
-                (strategy, timestamp),
+                "SELECT 1 FROM signals WHERE strategy = %s AND timestamp = %s AND timeframe = %s",
+                (strategy, timestamp, timeframe),
             )
             if cur.fetchone():
                 return
 
             cur.execute(
                 """
-                INSERT INTO signals (strategy, signal, condition, price, ema9, ema21, timestamp)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO signals (strategy, signal, condition, price, ema9, ema21, timestamp, timeframe)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (strategy, signal, condition, price, ema9, ema21, timestamp),
+                (strategy, signal, condition, price, ema9, ema21, timestamp, timeframe),
             )
         conn.commit()
 
@@ -97,7 +97,7 @@ def evaluate_outcomes(current_candles):
         conn.commit()
 
 
-def get_statistics():
+def get_statistics(timeframe="1h"):
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute("""
@@ -106,8 +106,9 @@ def get_statistics():
                        COUNT(*) FILTER (WHERE outcome = 'WIN') AS wins,
                        COUNT(*) FILTER (WHERE outcome = 'LOSS') AS losses
                 FROM signals
+                WHERE timeframe = %s
                 GROUP BY strategy
-            """)
+            """, (timeframe,))
             rows = cur.fetchall()
 
     stats = {}
@@ -121,18 +122,19 @@ def get_statistics():
     return stats
 
 
-def get_history(limit=50):
+def get_history(timeframe="1h", limit=50):
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 SELECT id, strategy, signal, condition, price, ema9, ema21,
-                       timestamp, outcome, outcome_price, created_at
+                       timestamp, outcome, outcome_price, created_at, timeframe
                 FROM signals
+                WHERE timeframe = %s
                 ORDER BY created_at DESC
                 LIMIT %s
                 """,
-                (limit,),
+                (timeframe, limit),
             )
             columns = [desc[0] for desc in cur.description]
             rows = cur.fetchall()

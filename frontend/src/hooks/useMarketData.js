@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 
-export function useMarketData() {
+const BASE_URL = 'https://kryptonett-backend.onrender.com';
+
+export function useMarketData(timeframe) {
   const [candles, setCandles] = useState([]);
   const [signal, setSignal] = useState(null);
   const [history, setHistory] = useState(null);
@@ -17,11 +19,12 @@ export function useMarketData() {
       }
 
       try {
+        const query = `?timeframe=${timeframe}`;
         const [candlesRes, signalRes, historyRes, statisticsRes] = await Promise.all([
-          fetch('https://kryptonett-backend.onrender.com/api/candles'),
-          fetch('https://kryptonett-backend.onrender.com/api/signal'),
-          fetch('https://kryptonett-backend.onrender.com/api/history'),
-          fetch('https://kryptonett-backend.onrender.com/api/statistics'),
+          fetch(`${BASE_URL}/api/candles${query}`),
+          fetch(`${BASE_URL}/api/signal${query}`),
+          fetch(`${BASE_URL}/api/history${query}`),
+          fetch(`${BASE_URL}/api/statistics${query}`),
         ]);
 
         if (!candlesRes.ok || !signalRes.ok || !historyRes.ok || !statisticsRes.ok) {
@@ -58,7 +61,7 @@ export function useMarketData() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, []);
+  }, [timeframe]);
 
   return { candles, signal, history, statistics, loading, error };
 }
