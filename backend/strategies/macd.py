@@ -15,6 +15,25 @@ def analyse(candles: list[dict], state: dict) -> dict:
     macd_value = round(last["macd"], 2)
     macd_signal_value = round(last["macd_signal"], 2)
     macd_histogram_value = round(last["macd_histogram"], 2)
+    macd_distance_pct = round(
+        abs(last["macd"] - last["macd_signal"]) / abs(last["macd_signal"]) * 100,
+        2,
+    )
+
+    prev_histogram = prev["macd_histogram"]
+    last_histogram = last["macd_histogram"]
+    if last_histogram < 0:
+        if last_histogram < prev_histogram:
+            momentum = "forsterkes bearish"
+        else:
+            momentum = "svekkes — crossover kan nærme seg"
+    elif last_histogram > 0:
+        if last_histogram > prev_histogram:
+            momentum = "forsterkes bullish"
+        else:
+            momentum = "svekkes — crossover kan nærme seg"
+    else:
+        momentum = "svekkes — crossover kan nærme seg"
 
     macd_crossed_above = prev["macd"] < prev["macd_signal"] and last["macd"] > last["macd_signal"]
     macd_crossed_below = prev["macd"] > prev["macd_signal"] and last["macd"] < last["macd_signal"]
@@ -58,6 +77,8 @@ def analyse(candles: list[dict], state: dict) -> dict:
         result["macd"] = macd_value
         result["macd_signal"] = macd_signal_value
         result["macd_histogram"] = macd_histogram_value
+        result["momentum"] = momentum
+        result["macd_distance_pct"] = macd_distance_pct
         result["rsi"] = rsi_value
         result["updated_state"] = {
             "retning": state.get("retning"),
@@ -81,8 +102,13 @@ def analyse(candles: list[dict], state: dict) -> dict:
 
     def neutral_waiting():
         if last["macd"] > last["macd_signal"]:
-            return "Bullish trend. MACD over Signal-linje. Venter på SHORT-signal"
-        return "Bearish trend. MACD under Signal-linje. Venter på LONG-signal"
+            trend_text = f"Bullish trend. MACD over Signal-linje ({macd_value})"
+        else:
+            trend_text = f"Bearish trend. MACD under Signal-linje ({macd_value})"
+        return (
+            f"{trend_text}. Momentum {momentum}. "
+            f"Avstand: {macd_distance_pct}% — crossover krever betydelig bevegelse"
+        )
 
     # FASE 2 - Bekreftelse
     if (
@@ -131,7 +157,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if last["macd"] > last["macd_signal"]:
             return with_updated_state({
                 "signal": "NEUTRAL",
-                "condition": "Bullish trend. MACD over Signal-linje. Venter på SHORT-signal",
+                "condition": neutral_waiting(),
                 "strength": None,
                 "awaiting_confirmation": False,
             })
@@ -142,7 +168,7 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if last["macd"] < last["macd_signal"]:
             return with_updated_state({
                 "signal": "NEUTRAL",
-                "condition": "Bearish trend. MACD under Signal-linje. Venter på LONG-signal",
+                "condition": neutral_waiting(),
                 "strength": None,
                 "awaiting_confirmation": False,
             })

@@ -207,6 +207,8 @@ def api_signals():
             signal_obj["macd"] = result["macd"]
             signal_obj["macd_signal"] = result["macd_signal"]
             signal_obj["macd_histogram"] = result["macd_histogram"]
+            signal_obj["momentum"] = result.get("momentum")
+            signal_obj["macd_distance_pct"] = result.get("macd_distance_pct")
         signals.append(signal_obj)
     return jsonify(signals)
 
