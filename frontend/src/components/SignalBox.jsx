@@ -24,8 +24,10 @@ export default function SignalBox({ signal }) {
       <p style={{ margin: '0 0 4px' }}>Avstand: {signal.distance_pct.toFixed(2)}%</p>
       <p style={{ margin: '0 0 4px' }}>Trend: {signal.trend}</p>
       <p style={{ margin: '0 0 4px' }}>Crossover-pris: {signal.crossover_price.toFixed(2)}</p>
-      {signal.strength && <p style={{ margin: '0 0 4px' }}>Styrke: {signal.strength}</p>}
-      {signal.rsi != null && <p style={{ margin: 0 }}>RSI: {signal.rsi}</p>}
+      {signal.rsi != null && <p style={{ margin: '0 0 4px' }}>RSI: {signal.rsi}</p>}
+      {signal.strength && signal.signal !== 'NEUTRAL' && (
+        <p style={{ margin: 0 }}>Styrke: {signal.strength}</p>
+      )}
     </div>
   );
 }

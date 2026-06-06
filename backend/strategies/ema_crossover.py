@@ -54,12 +54,12 @@ def analyse(candles: list[dict], state: dict) -> dict:
     def neutral_condition():
         if trend == "Bearish":
             return (
-                f"Bullish trend bekreftet. Venter på SHORT-signal. "
-                f"EMA 9 må krysse under {crossover_price} for SHORT-signal."
+                f"Bearish trend bekreftet. Venter på LONG-signal. "
+                f"EMA 9 må krysse over {crossover_price} for LONG-signal."
             )
         return (
-            f"Bearish trend bekreftet. Venter på LONG-signal. "
-            f"EMA 9 må krysse over {crossover_price} for LONG-signal."
+            f"Bullish trend bekreftet. Venter på SHORT-signal. "
+            f"EMA 9 må krysse under {crossover_price} for SHORT-signal."
         )
 
     def reset_state():
