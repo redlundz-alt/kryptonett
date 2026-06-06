@@ -8,8 +8,12 @@ def analyse(candles: list[dict], state: dict) -> dict:
     rsi_direction = last.get("rsi_direction") or "flat"
     close = last["close"]
     entry = round(close, 2)
-    distance_to_oversold = round(rsi - 30, 1)
-    distance_to_overbought = round(70 - rsi, 1)
+    distance_to_oversold = (
+        f"Allerede oversold ({rsi_value})" if rsi < 30 else round(rsi - 30, 1)
+    )
+    distance_to_overbought = (
+        f"Allerede overbought ({rsi_value})" if rsi > 70 else round(70 - rsi, 1)
+    )
 
     crossed_under_30 = prev["rsi"] >= 30 and rsi < 30
     crossed_over_70 = prev["rsi"] <= 70 and rsi > 70
@@ -97,6 +101,29 @@ def analyse(candles: list[dict], state: dict) -> dict:
             )
         poeng = round(min(rsi - 30, 70 - rsi), 1)
         return f"RSI: {rsi_value}, flat. {poeng} poeng til nærmeste signal-nivå."
+
+    # Oppstart-sjekk
+    if state.get("retning") is None:
+        if rsi < 30:
+            state["retning"] = "LONG"
+            state["crossover_bekreftet"] = True
+            condition, strength = build_confirmed_long()
+            return with_updated_state({
+                "signal": "LONG",
+                "condition": condition,
+                "strength": strength,
+                "awaiting_confirmation": False,
+            })
+        if rsi > 70:
+            state["retning"] = "SHORT"
+            state["crossover_bekreftet"] = True
+            condition, strength = build_confirmed_short()
+            return with_updated_state({
+                "signal": "SHORT",
+                "condition": condition,
+                "strength": strength,
+                "awaiting_confirmation": False,
+            })
 
     # FASE 2 - Bekreftelse
     if (
