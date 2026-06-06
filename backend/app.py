@@ -5,6 +5,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 
 from data_fetcher import fetch_candles
+from database import evaluate_outcomes, get_history, get_statistics, init_db, save_signal
 from indicator import add_ema
 from strategy_runner import run_strategies
 
@@ -22,11 +23,25 @@ def fetch_loop():
             add_ema(candles, 9)
             add_ema(candles, 21)
             cached_candles = candles
+            strategies = run_strategies(candles)
+            last = candles[-1]
+            for result in strategies:
+                save_signal(
+                    result["strategy"],
+                    result["signal"],
+                    result["condition"],
+                    last["close"],
+                    last["ema9"],
+                    last["ema21"],
+                    last["time"],
+                )
+            evaluate_outcomes(candles)
         except Exception:
             pass
         time.sleep(300)
 
 
+init_db()
 threading.Thread(target=fetch_loop, daemon=True).start()
 
 
@@ -57,6 +72,16 @@ def api_signal():
         "ema21": last["ema21"],
         "timestamp": last["time"],
     })
+
+
+@app.route("/api/history")
+def api_history():
+    return jsonify(get_history())
+
+
+@app.route("/api/statistics")
+def api_statistics():
+    return jsonify(get_statistics())
 
 
 if __name__ == "__main__":

@@ -1,9 +1,11 @@
 import Chart from './components/Chart.jsx';
+import History from './components/History.jsx';
 import SignalBox from './components/SignalBox.jsx';
+import Statistics from './components/Statistics.jsx';
 import { useMarketData } from './hooks/useMarketData.js';
 
 export default function App() {
-  const { candles, signal, loading, error } = useMarketData();
+  const { candles, signal, history, statistics, loading, error } = useMarketData();
 
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
@@ -15,6 +17,14 @@ export default function App() {
           <Chart candles={candles} />
           <div style={{ marginTop: 16 }}>
             <SignalBox signal={signal} />
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <h2 style={{ margin: '0 0 8px' }}>Statistikk</h2>
+            <Statistics statistics={statistics} />
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <h2 style={{ margin: '0 0 8px' }}>Signalhistorikk</h2>
+            <History history={history} />
           </div>
         </>
       )}
