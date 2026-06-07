@@ -96,23 +96,6 @@ export default function App() {
           <p style={{ margin: '8px 0 0 18px', fontSize: 13, color: '#666', lineHeight: 1.4 }}>
             Teknisk analyse av Bitcoin i sanntid — EMA Crossover, MACD, RSI og Golden Cross
           </p>
-          <button
-            type="button"
-            onClick={() => setCurrentPage('strategier')}
-            style={{
-              margin: '12px 0 0 18px',
-              padding: 0,
-              border: 'none',
-              background: 'none',
-              color: currentPage === 'strategier' ? '#f7931a' : '#2563eb',
-              fontSize: 14,
-              fontWeight: currentPage === 'strategier' ? 'bold' : 'normal',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
-          >
-            Strategier
-          </button>
         </div>
 
         <div
@@ -152,6 +135,21 @@ export default function App() {
               Sist oppdatert: {lastUpdated.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => setCurrentPage('strategier')}
+            style={{
+              padding: '8px 16px',
+              border: currentPage === 'strategier' ? '2px solid #f7931a' : '1px solid #ccc',
+              borderRadius: 4,
+              backgroundColor: currentPage === 'strategier' ? '#f7931a' : '#f3f4f6',
+              color: currentPage === 'strategier' ? '#fff' : '#666',
+              fontWeight: currentPage === 'strategier' ? 'bold' : 'normal',
+              cursor: 'pointer',
+            }}
+          >
+            Strategier
+          </button>
           <span style={{ fontSize: 13, color: '#666' }}>
             BTC/USD · {selectedStrategies.length} strategier aktive
           </span>
