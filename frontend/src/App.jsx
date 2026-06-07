@@ -25,9 +25,17 @@ const TIMEFRAMES = [
 export default function App() {
   const [timeframe, setTimeframe] = useState('1h');
   const [selectedStrategies, setSelectedStrategies] = useState(['ema_crossover']);
-  const { candles, signals, history, statistics, loading, error, lastUpdated } = useMarketData(timeframe);
+  const { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp } = useMarketData(timeframe);
 
   const activeSignals = signals.filter((s) => selectedStrategies.includes(s.strategy));
+  const filteredStatistics = statistics
+    ? Object.fromEntries(
+        Object.entries(statistics).filter(([strategy]) => selectedStrategies.includes(strategy)),
+      )
+    : statistics;
+  const filteredHistory = history
+    ? history.filter((entry) => selectedStrategies.includes(entry.strategy))
+    : history;
 
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
@@ -36,6 +44,10 @@ export default function App() {
           @keyframes livePulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.5; transform: scale(0.85); }
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
         `}
       </style>
@@ -150,8 +162,44 @@ export default function App() {
         onChange={setSelectedStrategies}
       />
 
-      {loading && <p>Laster data...</p>}
-      {error && <p>Feil: {error.message}</p>}
+      {loading && !isWakingUp && <p>Laster data...</p>}
+      {loading && isWakingUp && (
+        <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              margin: '0 auto 12px',
+              border: '3px solid #e5e7eb',
+              borderTopColor: '#f7931a',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
+          <p style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 'bold' }}>Vekker opp serveren...</p>
+          <p style={{ margin: 0, fontSize: 13, color: '#666' }}>
+            Dette tar vanligvis 30-60 sekunder ved første besøk
+          </p>
+        </div>
+      )}
+      {error && (
+        <div style={{ padding: '16px 0' }}>
+          <p style={{ margin: '0 0 12px' }}>Feil: {error.message}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '8px 16px',
+              border: '1px solid #ccc',
+              borderRadius: 4,
+              backgroundColor: '#fff',
+              cursor: 'pointer',
+            }}
+          >
+            Prøv igjen
+          </button>
+        </div>
+      )}
 
       {!loading && !error && (
         <>
@@ -187,12 +235,12 @@ export default function App() {
 
           <div style={{ marginTop: 16 }}>
             <h2 style={{ margin: '0 0 8px' }}>Statistikk</h2>
-            <Statistics statistics={statistics} />
+            <Statistics statistics={filteredStatistics} />
           </div>
 
           <div style={{ marginTop: 16 }}>
             <h2 style={{ margin: '0 0 8px' }}>Signalhistorikk</h2>
-            <History history={history} />
+            <History history={filteredHistory} />
           </div>
         </>
       )}

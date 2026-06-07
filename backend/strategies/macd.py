@@ -159,9 +159,21 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if last["macd"] > last["macd_signal"]:
             state["retning"] = "SHORT"
             state["crossover_bekreftet"] = True
-        elif last["macd"] < last["macd_signal"]:
+            return with_updated_state({
+                "signal": "NEUTRAL",
+                "condition": neutral_waiting(),
+                "strength": None,
+                "awaiting_confirmation": False,
+            })
+        if last["macd"] < last["macd_signal"]:
             state["retning"] = "LONG"
             state["crossover_bekreftet"] = True
+            return with_updated_state({
+                "signal": "NEUTRAL",
+                "condition": neutral_waiting(),
+                "strength": None,
+                "awaiting_confirmation": False,
+            })
 
     # FASE 2 - Bekreftelse
     if (

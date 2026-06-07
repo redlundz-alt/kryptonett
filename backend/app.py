@@ -64,12 +64,12 @@ def fetch_loop():
             states = load_strategy_states(timeframe)
             results = run_strategies(candles, states)
             for result in results:
-                updated = result["updated_state"]
+                updated = result.get("updated_state", {})
                 save_signal_state(
                     timeframe,
                     result["strategy"],
-                    updated["retning"],
-                    updated["crossover_bekreftet"],
+                    updated.get("retning"),
+                    updated.get("crossover_bekreftet", False),
                 )
             last = candles[-1]
             for result in results:
@@ -107,12 +107,12 @@ def fetch_loop():
             states = load_strategy_states(next_timeframe)
             results = run_strategies(candles, states)
             for result in results:
-                updated = result["updated_state"]
+                updated = result.get("updated_state", {})
                 save_signal_state(
                     next_timeframe,
                     result["strategy"],
-                    updated["retning"],
-                    updated["crossover_bekreftet"],
+                    updated.get("retning"),
+                    updated.get("crossover_bekreftet", False),
                 )
             last = candles[-1]
             for result in results:
@@ -163,12 +163,12 @@ def api_signal():
     states = load_strategy_states(timeframe)
     results = run_strategies(cached_candles[timeframe], states)
     for result in results:
-        updated = result["updated_state"]
+        updated = result.get("updated_state", {})
         save_signal_state(
             timeframe,
             result["strategy"],
-            updated["retning"],
-            updated["crossover_bekreftet"],
+            updated.get("retning"),
+            updated.get("crossover_bekreftet", False),
         )
     result = results[0]
     last = cached_candles[timeframe][-1]
@@ -200,12 +200,12 @@ def api_signals():
     states = load_strategy_states(timeframe)
     results = run_strategies(cached_candles[timeframe], states)
     for result in results:
-        updated = result["updated_state"]
+        updated = result.get("updated_state", {})
         save_signal_state(
             timeframe,
             result["strategy"],
-            updated["retning"],
-            updated["crossover_bekreftet"],
+            updated.get("retning"),
+            updated.get("crossover_bekreftet", False),
         )
     last = cached_candles[timeframe][-1]
     signals = []

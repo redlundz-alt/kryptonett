@@ -142,9 +142,21 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if last["ema50"] > last["ema200"]:
             state["retning"] = "SHORT"
             state["crossover_bekreftet"] = True
-        elif last["ema50"] < last["ema200"]:
+            return with_updated_state({
+                "signal": "NEUTRAL",
+                "condition": neutral_waiting(),
+                "strength": "Sterk",
+                "awaiting_confirmation": False,
+            })
+        if last["ema50"] < last["ema200"]:
             state["retning"] = "LONG"
             state["crossover_bekreftet"] = True
+            return with_updated_state({
+                "signal": "NEUTRAL",
+                "condition": neutral_waiting(),
+                "strength": "Sterk",
+                "awaiting_confirmation": False,
+            })
 
     # FASE 2 - Bekreftelse
     if (

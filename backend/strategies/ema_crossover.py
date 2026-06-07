@@ -109,9 +109,35 @@ def analyse(candles: list[dict], state: dict) -> dict:
         if last["ema9"] > last["ema21"]:
             state["retning"] = "SHORT"
             state["crossover_bekreftet"] = True
-        elif last["ema9"] < last["ema21"]:
+            return with_updated_state({
+                "signal": "NEUTRAL",
+                "condition": (
+                    f"Bullish trend bekreftet. Venter på SHORT-signal. "
+                    f"EMA 9 må krysse under {crossover_price}"
+                ),
+                "distance_pct": distance_pct,
+                "trend": trend,
+                "crossover_price": crossover_price,
+                "strength": None,
+                "rsi": rsi_value,
+                "awaiting_confirmation": False,
+            })
+        if last["ema9"] < last["ema21"]:
             state["retning"] = "LONG"
             state["crossover_bekreftet"] = True
+            return with_updated_state({
+                "signal": "NEUTRAL",
+                "condition": (
+                    f"Bearish trend bekreftet. Venter på LONG-signal. "
+                    f"EMA 9 må krysse over {crossover_price}"
+                ),
+                "distance_pct": distance_pct,
+                "trend": trend,
+                "crossover_price": crossover_price,
+                "strength": None,
+                "rsi": rsi_value,
+                "awaiting_confirmation": False,
+            })
 
     # FASE 2 - Bekreftelse (neste candle etter crossover)
     if (

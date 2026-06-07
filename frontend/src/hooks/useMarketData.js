@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 
 const BASE_URL = 'https://kryptonett-backend.onrender.com';
+const MAX_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 5000;
+const WAKING_UP_DELAY_MS = 3000;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export function useMarketData(timeframe) {
   const [candles, setCandles] = useState([]);
@@ -10,6 +17,7 @@ export function useMarketData(timeframe) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isWakingUp, setIsWakingUp] = useState(false);
   const prevCandleTimestampRef = useRef(null);
 
   useEffect(() => {
@@ -19,45 +27,67 @@ export function useMarketData(timeframe) {
     async function fetchData(isInitial) {
       if (isInitial) {
         setLoading(true);
+        setIsWakingUp(false);
       }
 
-      try {
-        const query = `?timeframe=${timeframe}`;
-        const [candlesRes, signalsRes, historyRes, statisticsRes] = await Promise.all([
-          fetch(`${BASE_URL}/api/candles${query}`),
-          fetch(`${BASE_URL}/api/signals${query}`),
-          fetch(`${BASE_URL}/api/history${query}`),
-          fetch(`${BASE_URL}/api/statistics${query}`),
-        ]);
+      let wakingTimer = null;
+      if (isInitial) {
+        wakingTimer = setTimeout(() => {
+          if (!cancelled) {
+            setIsWakingUp(true);
+          }
+        }, WAKING_UP_DELAY_MS);
+      }
 
-        if (!candlesRes.ok || !signalsRes.ok || !historyRes.ok || !statisticsRes.ok) {
-          throw new Error('Failed to fetch market data');
-        }
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+        try {
+          const query = `?timeframe=${timeframe}`;
+          const [candlesRes, signalsRes, historyRes, statisticsRes] = await Promise.all([
+            fetch(`${BASE_URL}/api/candles${query}`),
+            fetch(`${BASE_URL}/api/signals${query}`),
+            fetch(`${BASE_URL}/api/history${query}`),
+            fetch(`${BASE_URL}/api/statistics${query}`),
+          ]);
 
-        const candlesData = await candlesRes.json();
-        const signalsData = await signalsRes.json();
-        const historyData = await historyRes.json();
-        const statisticsData = await statisticsRes.json();
-        const latestTimestamp = candlesData.candles[candlesData.candles.length - 1]?.time;
-        const dataChanged =
-          isInitial || latestTimestamp !== prevCandleTimestampRef.current;
+          if (!candlesRes.ok || !signalsRes.ok || !historyRes.ok || !statisticsRes.ok) {
+            throw new Error('Failed to fetch market data');
+          }
 
-        if (!cancelled && dataChanged) {
-          prevCandleTimestampRef.current = latestTimestamp;
-          setCandles(candlesData.candles);
-          setSignals(signalsData);
-          setHistory(historyData);
-          setStatistics(statisticsData);
-          setLastUpdated(new Date());
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err);
-        }
-      } finally {
-        if (!cancelled && isInitial) {
-          setLoading(false);
+          const candlesData = await candlesRes.json();
+          const signalsData = await signalsRes.json();
+          const historyData = await historyRes.json();
+          const statisticsData = await statisticsRes.json();
+          const latestTimestamp = candlesData.candles[candlesData.candles.length - 1]?.time;
+          const dataChanged =
+            isInitial || latestTimestamp !== prevCandleTimestampRef.current;
+
+          if (!cancelled && dataChanged) {
+            prevCandleTimestampRef.current = latestTimestamp;
+            setCandles(candlesData.candles);
+            setSignals(signalsData);
+            setHistory(historyData);
+            setStatistics(statisticsData);
+            setLastUpdated(new Date());
+            setError(null);
+          }
+
+          if (isInitial && !cancelled) {
+            clearTimeout(wakingTimer);
+            setIsWakingUp(false);
+            setLoading(false);
+          }
+          return;
+        } catch (err) {
+          if (attempt < MAX_ATTEMPTS && !cancelled) {
+            await sleep(RETRY_DELAY_MS);
+          } else if (!cancelled) {
+            if (isInitial) {
+              clearTimeout(wakingTimer);
+              setIsWakingUp(false);
+              setLoading(false);
+            }
+            setError(err);
+          }
         }
       }
     }
@@ -71,5 +101,5 @@ export function useMarketData(timeframe) {
     };
   }, [timeframe]);
 
-  return { candles, signals, history, statistics, loading, error, lastUpdated };
+  return { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp };
 }
