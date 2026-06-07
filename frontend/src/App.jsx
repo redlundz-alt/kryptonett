@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AffiliateSection from './components/AffiliateSection.jsx';
 import Chart from './components/Chart.jsx';
 import ConfluenceBox from './components/ConfluenceBox.jsx';
+import Footer from './components/Footer.jsx';
 import History from './components/History.jsx';
 import SignalCard from './components/SignalCard.jsx';
 import Statistics from './components/Statistics.jsx';
@@ -285,6 +286,8 @@ export default function App() {
       )}
 
       {currentPage === 'strategier' && <Strategier />}
+
+      <Footer />
     </div>
   );
 }
