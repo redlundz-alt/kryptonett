@@ -7,6 +7,7 @@ import SignalCard from './components/SignalCard.jsx';
 import Statistics from './components/Statistics.jsx';
 import StrategySelector from './components/StrategySelector.jsx';
 import { useMarketData } from './hooks/useMarketData.js';
+import Strategier from './pages/Strategier.jsx';
 
 const STRATEGIES = [
   { id: 'ema_crossover', name: 'EMA Crossover' },
@@ -23,6 +24,7 @@ const TIMEFRAMES = [
 ];
 
 export default function App() {
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [timeframe, setTimeframe] = useState('1h');
   const [selectedStrategies, setSelectedStrategies] = useState(['ema_crossover']);
   const { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp } = useMarketData(timeframe);
@@ -62,14 +64,21 @@ export default function App() {
         }}
       >
         <div>
-          <h1
+          <button
+            type="button"
+            onClick={() => setCurrentPage('dashboard')}
             style={{
               margin: 0,
+              padding: 0,
+              border: 'none',
+              background: 'none',
               fontSize: 28,
               lineHeight: 1,
               display: 'flex',
               alignItems: 'center',
               gap: 10,
+              cursor: 'pointer',
+              color: '#333',
             }}
           >
             <span
@@ -83,10 +92,27 @@ export default function App() {
               }}
             />
             kryptonett.no
-          </h1>
+          </button>
           <p style={{ margin: '8px 0 0 18px', fontSize: 13, color: '#666', lineHeight: 1.4 }}>
             Teknisk analyse av Bitcoin i sanntid — EMA Crossover, MACD, RSI og Golden Cross
           </p>
+          <button
+            type="button"
+            onClick={() => setCurrentPage('strategier')}
+            style={{
+              margin: '12px 0 0 18px',
+              padding: 0,
+              border: 'none',
+              background: 'none',
+              color: currentPage === 'strategier' ? '#f7931a' : '#2563eb',
+              fontSize: 14,
+              fontWeight: currentPage === 'strategier' ? 'bold' : 'normal',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            Strategier
+          </button>
         </div>
 
         <div
@@ -132,6 +158,8 @@ export default function App() {
         </div>
       </div>
 
+      {currentPage === 'dashboard' && (
+        <>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {TIMEFRAMES.map(({ value, label }) => {
           const isActive = timeframe === value;
@@ -244,6 +272,10 @@ export default function App() {
           </div>
         </>
       )}
+        </>
+      )}
+
+      {currentPage === 'strategier' && <Strategier />}
     </div>
   );
 }
