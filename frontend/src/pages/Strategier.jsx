@@ -113,7 +113,7 @@ const SECTIONS = [
 
 function AccordionSection({ section, isOpen, onToggle }) {
   return (
-    <div
+    <article
       style={{
         backgroundColor: '#fff',
         borderRadius: 8,
@@ -178,7 +178,7 @@ function AccordionSection({ section, isOpen, onToggle }) {
           ))}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -191,7 +191,7 @@ export default function Strategier() {
 
   return (
     <div>
-      <h2 style={{ margin: '0 0 16px', fontSize: 22 }}>Strategier</h2>
+      <h1 style={{ margin: '0 0 16px', fontSize: 22 }}>Strategier</h1>
       {SECTIONS.map((section) => (
         <AccordionSection
           key={section.id}

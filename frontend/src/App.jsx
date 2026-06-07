@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AffiliateSection from './components/AffiliateSection.jsx';
 import Chart from './components/Chart.jsx';
 import ConfluenceBox from './components/ConfluenceBox.jsx';
@@ -38,6 +38,17 @@ export default function App() {
   const filteredHistory = history
     ? history.filter((entry) => selectedStrategies.includes(entry.strategy))
     : history;
+
+  useEffect(() => {
+    document.documentElement.lang = 'no';
+  }, []);
+
+  useEffect(() => {
+    document.title =
+      currentPage === 'strategier'
+        ? 'Strategier — kryptonett.no'
+        : 'kryptonett.no — Live Bitcoin trading-signaler';
+  }, [currentPage]);
 
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
