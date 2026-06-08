@@ -342,36 +342,44 @@ export default function App() {
 
       {currentPage === 'dashboard' && (
         <>
-      <div className="timeframe-buttons" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {TIMEFRAMES.map(({ value, label }) => {
-          const isActive = timeframe === value;
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setTimeframe(value)}
-              style={{
-                padding: '8px 16px',
-                border: isActive ? '2px solid #f7931a' : '1px solid #ccc',
-                borderRadius: 4,
-                backgroundColor: isActive ? '#f7931a' : '#f3f4f6',
-                color: isActive ? '#fff' : '#666',
-                fontWeight: isActive ? 'bold' : 'normal',
-                cursor: 'pointer',
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+      <div
+        style={{
+          backgroundColor: 'var(--color-background-secondary)',
+          borderTop: '3px solid #f7931a',
+          padding: '12px 16px',
+        }}
+      >
+        <div className="timeframe-buttons" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          {TIMEFRAMES.map(({ value, label }) => {
+            const isActive = timeframe === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTimeframe(value)}
+                style={{
+                  padding: '8px 16px',
+                  border: isActive ? '2px solid #f7931a' : '1px solid #ccc',
+                  borderRadius: 4,
+                  backgroundColor: isActive ? '#f7931a' : '#f3f4f6',
+                  color: isActive ? '#fff' : '#666',
+                  fontWeight: isActive ? 'bold' : 'normal',
+                  cursor: 'pointer',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="strategy-selector-wrap">
-        <StrategySelector
-          strategies={STRATEGIES}
-          selected={selectedStrategies}
-          onChange={setSelectedStrategies}
-        />
+        <div className="strategy-selector-wrap">
+          <StrategySelector
+            strategies={STRATEGIES}
+            selected={selectedStrategies}
+            onChange={setSelectedStrategies}
+          />
+        </div>
       </div>
 
       {loading && !isWakingUp && <p>Laster data...</p>}
