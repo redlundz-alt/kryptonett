@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AffiliateSection from './components/AffiliateSection.jsx';
 import Chart from './components/Chart.jsx';
 import ConfluenceBox from './components/ConfluenceBox.jsx';
@@ -24,8 +24,17 @@ const TIMEFRAMES = [
   { value: '1d', label: '1D' },
 ];
 
+const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'strategier', label: 'Strategier' },
+  { id: 'verktoy', label: 'Verktøy' },
+  { id: 'guider', label: 'Guider' },
+];
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
+  const navRef = useRef(null);
   const [timeframe, setTimeframe] = useState('1h');
   const [selectedStrategies, setSelectedStrategies] = useState(['ema_crossover']);
   const { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp } = useMarketData(timeframe);
@@ -51,6 +60,24 @@ export default function App() {
         : 'kryptonett.no — Live Bitcoin trading-signaler';
   }, [currentPage]);
 
+  useEffect(() => {
+    if (!navMenuOpen) {
+      return undefined;
+    }
+    function handleClickOutside(event) {
+      if (navRef.current && !navRef.current.contains(event.target)) {
+        setNavMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [navMenuOpen]);
+
+  function navigateTo(page) {
+    setCurrentPage(page);
+    setNavMenuOpen(false);
+  }
+
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
       <style>
@@ -63,7 +90,31 @@ export default function App() {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
           }
-          .mobile-strategier-link {
+          .app-nav-link {
+            padding: 12px 16px;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: none;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+          }
+          .app-nav-link:hover {
+            color: #333;
+          }
+          .app-nav-link.active {
+            color: #f7931a;
+            border-bottom-color: #f7931a;
+            font-weight: bold;
+          }
+          .app-nav-desktop {
+            display: flex;
+            gap: 4px;
+          }
+          .app-nav-hamburger {
+            display: none;
+          }
+          .app-nav-dropdown {
             display: none;
           }
           @media (max-width: 768px) {
@@ -92,11 +143,6 @@ export default function App() {
               font-size: 12px !important;
               text-align: left;
             }
-            .app-header-tagline,
-            .app-header-strategier-btn,
-            .app-header-active-count {
-              display: none !important;
-            }
             .timeframe-buttons {
               width: 100%;
               gap: 4px !important;
@@ -115,16 +161,50 @@ export default function App() {
               flex-shrink: 0;
               white-space: nowrap;
             }
-            .mobile-strategier-link {
+            .app-nav {
+              position: relative;
+              display: flex;
+              justify-content: flex-end;
+            }
+            .app-nav-desktop {
+              display: none;
+            }
+            .app-nav-hamburger {
               display: block;
-              margin-top: 12px;
-              padding: 0;
-              border: none;
-              background: none;
-              font-size: 13px;
-              color: #2563eb;
+              padding: 8px 12px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              background: #f3f4f6;
+              font-size: 18px;
+              line-height: 1;
+              color: #666;
               cursor: pointer;
+            }
+            .app-nav-dropdown {
+              display: none;
+              position: absolute;
+              top: 100%;
+              right: 0;
+              z-index: 10;
+              min-width: 160px;
+              margin-top: 4px;
+              padding: 4px 0;
+              background: #fff;
+              border: 1px solid #e5e7eb;
+              border-radius: 4px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            .app-nav-dropdown.open {
+              display: flex;
+              flex-direction: column;
+            }
+            .app-nav-dropdown .app-nav-link {
               text-align: left;
+              border-bottom: none;
+              border-left: 3px solid transparent;
+            }
+            .app-nav-dropdown .app-nav-link.active {
+              border-left-color: #f7931a;
             }
           }
         `}
@@ -144,7 +224,7 @@ export default function App() {
           <button
             type="button"
             className="app-header-title"
-            onClick={() => setCurrentPage('dashboard')}
+            onClick={() => navigateTo('dashboard')}
             style={{
               margin: 0,
               padding: 0,
@@ -171,12 +251,6 @@ export default function App() {
             />
             kryptonett.no
           </button>
-          <p
-            className="app-header-tagline"
-            style={{ margin: '8px 0 0 18px', fontSize: 13, color: '#666', lineHeight: 1.4 }}
-          >
-            Teknisk analyse av Bitcoin i sanntid — EMA Crossover, MACD, RSI og Golden Cross
-          </p>
         </div>
 
         <div
@@ -218,27 +292,53 @@ export default function App() {
               Sist oppdatert: {lastUpdated.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
           )}
-          <button
-            type="button"
-            className="app-header-strategier-btn"
-            onClick={() => setCurrentPage('strategier')}
-            style={{
-              padding: '8px 16px',
-              border: currentPage === 'strategier' ? '2px solid #f7931a' : '1px solid #ccc',
-              borderRadius: 4,
-              backgroundColor: currentPage === 'strategier' ? '#f7931a' : '#f3f4f6',
-              color: currentPage === 'strategier' ? '#fff' : '#666',
-              fontWeight: currentPage === 'strategier' ? 'bold' : 'normal',
-              cursor: 'pointer',
-            }}
-          >
-            Strategier
-          </button>
-          <span className="app-header-active-count" style={{ fontSize: 13, color: '#666' }}>
-            BTC/USD · {selectedStrategies.length} strategier aktive
-          </span>
         </div>
       </div>
+
+      <nav
+        ref={navRef}
+        className="app-nav"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: 16,
+          paddingBottom: 0,
+          borderBottom: '1px solid #e5e7eb',
+        }}
+      >
+        <div className="app-nav-desktop">
+          {NAV_ITEMS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              className={`app-nav-link${currentPage === id ? ' active' : ''}`}
+              onClick={() => navigateTo(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="app-nav-hamburger"
+          onClick={() => setNavMenuOpen((open) => !open)}
+          aria-label="Meny"
+        >
+          ☰
+        </button>
+        <div className={`app-nav-dropdown${navMenuOpen ? ' open' : ''}`}>
+          {NAV_ITEMS.map(({ id, label }) => (
+            <button
+              key={id}
+              type="button"
+              className={`app-nav-link${currentPage === id ? ' active' : ''}`}
+              onClick={() => navigateTo(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
       {currentPage === 'dashboard' && (
         <>
@@ -361,15 +461,13 @@ export default function App() {
 
       {currentPage === 'strategier' && <Strategier />}
 
-      <Footer />
+      {(currentPage === 'verktoy' || currentPage === 'guider') && (
+        <p style={{ textAlign: 'center', padding: '48px 0', color: '#666', margin: 0 }}>
+          Kommer snart
+        </p>
+      )}
 
-      <button
-        type="button"
-        className="mobile-strategier-link"
-        onClick={() => setCurrentPage('strategier')}
-      >
-        Strategier →
-      </button>
+      <Footer />
     </div>
   );
 }
