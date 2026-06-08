@@ -78,6 +78,13 @@ export default function App() {
     setNavMenuOpen(false);
   }
 
+  const currentPrice = signals[0]?.current_price ?? null;
+  const prevClose = candles.length >= 2 ? candles[candles.length - 2].close : null;
+  const priceChangePct =
+    currentPrice != null && prevClose
+      ? ((currentPrice - prevClose) / prevClose) * 100
+      : null;
+
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
       <style>
@@ -117,6 +124,21 @@ export default function App() {
           .app-nav-dropdown {
             display: none;
           }
+          .dashboard-controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+          }
+          .dashboard-controls-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #666;
+            flex-shrink: 0;
+          }
           @media (max-width: 768px) {
             .app-header {
               display: grid;
@@ -142,6 +164,13 @@ export default function App() {
               grid-row: 2;
               font-size: 12px !important;
               text-align: left;
+            }
+            .dashboard-controls-row {
+              flex-direction: column;
+              align-items: stretch;
+            }
+            .dashboard-controls-meta {
+              flex-wrap: wrap;
             }
             .timeframe-buttons {
               width: 100%;
@@ -349,28 +378,44 @@ export default function App() {
           padding: '12px 16px',
         }}
       >
-        <div className="timeframe-buttons" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {TIMEFRAMES.map(({ value, label }) => {
-            const isActive = timeframe === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setTimeframe(value)}
-                style={{
-                  padding: '8px 16px',
-                  border: isActive ? '2px solid #f7931a' : '1px solid #ccc',
-                  borderRadius: 4,
-                  backgroundColor: isActive ? '#f7931a' : '#f3f4f6',
-                  color: isActive ? '#fff' : '#666',
-                  fontWeight: isActive ? 'bold' : 'normal',
-                  cursor: 'pointer',
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
+        <div className="dashboard-controls-row">
+          <div className="timeframe-buttons" style={{ display: 'flex', gap: 8 }}>
+            {TIMEFRAMES.map(({ value, label }) => {
+              const isActive = timeframe === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setTimeframe(value)}
+                  style={{
+                    padding: '8px 16px',
+                    border: isActive ? '2px solid #f7931a' : '1px solid #ccc',
+                    borderRadius: 4,
+                    backgroundColor: isActive ? '#f7931a' : '#f3f4f6',
+                    color: isActive ? '#fff' : '#666',
+                    fontWeight: isActive ? 'bold' : 'normal',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="dashboard-controls-meta">
+            {currentPrice != null && (
+              <span>
+                BTC ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            )}
+            {priceChangePct != null && (
+              <span style={{ color: priceChangePct >= 0 ? '#16a34a' : '#dc2626' }}>
+                {`${priceChangePct >= 0 ? '+' : ''}${priceChangePct.toFixed(1)}%`}
+              </span>
+            )}
+            <span>{selectedStrategies.length} strategier aktive</span>
+          </div>
         </div>
 
         <div className="strategy-selector-wrap">
