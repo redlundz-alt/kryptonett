@@ -63,10 +63,75 @@ export default function App() {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
           }
+          .mobile-strategier-link {
+            display: none;
+          }
+          @media (max-width: 768px) {
+            .app-header {
+              display: grid;
+              grid-template-columns: 1fr auto;
+              grid-template-rows: auto auto;
+              gap: 6px 12px;
+            }
+            .app-header-left,
+            .app-header-right {
+              display: contents;
+            }
+            .app-header-title {
+              grid-column: 1;
+              grid-row: 1;
+            }
+            .app-header-live {
+              grid-column: 2;
+              grid-row: 1;
+              align-self: center;
+            }
+            .app-header-updated {
+              grid-column: 1 / -1;
+              grid-row: 2;
+              font-size: 12px !important;
+              text-align: left;
+            }
+            .app-header-tagline,
+            .app-header-strategier-btn,
+            .app-header-active-count {
+              display: none !important;
+            }
+            .timeframe-buttons {
+              width: 100%;
+              gap: 4px !important;
+            }
+            .timeframe-buttons button {
+              flex: 1;
+              padding: 6px 4px !important;
+              font-size: 13px;
+            }
+            .strategy-selector-wrap > div {
+              flex-wrap: nowrap !important;
+              overflow-x: auto;
+              -webkit-overflow-scrolling: touch;
+            }
+            .strategy-selector-wrap label {
+              flex-shrink: 0;
+              white-space: nowrap;
+            }
+            .mobile-strategier-link {
+              display: block;
+              margin-top: 12px;
+              padding: 0;
+              border: none;
+              background: none;
+              font-size: 13px;
+              color: #2563eb;
+              cursor: pointer;
+              text-align: left;
+            }
+          }
         `}
       </style>
 
       <div
+        className="app-header"
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr auto',
@@ -75,9 +140,10 @@ export default function App() {
           alignItems: 'start',
         }}
       >
-        <div>
+        <div className="app-header-left">
           <button
             type="button"
+            className="app-header-title"
             onClick={() => setCurrentPage('dashboard')}
             style={{
               margin: 0,
@@ -105,12 +171,16 @@ export default function App() {
             />
             kryptonett.no
           </button>
-          <p style={{ margin: '8px 0 0 18px', fontSize: 13, color: '#666', lineHeight: 1.4 }}>
+          <p
+            className="app-header-tagline"
+            style={{ margin: '8px 0 0 18px', fontSize: 13, color: '#666', lineHeight: 1.4 }}
+          >
             Teknisk analyse av Bitcoin i sanntid — EMA Crossover, MACD, RSI og Golden Cross
           </p>
         </div>
 
         <div
+          className="app-header-right"
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -119,6 +189,7 @@ export default function App() {
           }}
         >
           <div
+            className="app-header-live"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -143,12 +214,13 @@ export default function App() {
             Live
           </div>
           {lastUpdated && (
-            <span style={{ fontSize: 13, color: '#666' }}>
+            <span className="app-header-updated" style={{ fontSize: 13, color: '#666' }}>
               Sist oppdatert: {lastUpdated.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
           )}
           <button
             type="button"
+            className="app-header-strategier-btn"
             onClick={() => setCurrentPage('strategier')}
             style={{
               padding: '8px 16px',
@@ -162,7 +234,7 @@ export default function App() {
           >
             Strategier
           </button>
-          <span style={{ fontSize: 13, color: '#666' }}>
+          <span className="app-header-active-count" style={{ fontSize: 13, color: '#666' }}>
             BTC/USD · {selectedStrategies.length} strategier aktive
           </span>
         </div>
@@ -170,7 +242,7 @@ export default function App() {
 
       {currentPage === 'dashboard' && (
         <>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <div className="timeframe-buttons" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {TIMEFRAMES.map(({ value, label }) => {
           const isActive = timeframe === value;
           return (
@@ -194,11 +266,13 @@ export default function App() {
         })}
       </div>
 
-      <StrategySelector
-        strategies={STRATEGIES}
-        selected={selectedStrategies}
-        onChange={setSelectedStrategies}
-      />
+      <div className="strategy-selector-wrap">
+        <StrategySelector
+          strategies={STRATEGIES}
+          selected={selectedStrategies}
+          onChange={setSelectedStrategies}
+        />
+      </div>
 
       {loading && !isWakingUp && <p>Laster data...</p>}
       {loading && isWakingUp && (
@@ -288,6 +362,14 @@ export default function App() {
       {currentPage === 'strategier' && <Strategier />}
 
       <Footer />
+
+      <button
+        type="button"
+        className="mobile-strategier-link"
+        onClick={() => setCurrentPage('strategier')}
+      >
+        Strategier →
+      </button>
     </div>
   );
 }
