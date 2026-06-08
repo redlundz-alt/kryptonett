@@ -78,12 +78,12 @@ export default function App() {
     setNavMenuOpen(false);
   }
 
-  const currentPrice = signals[0]?.current_price ?? null;
-  const prevClose = candles.length >= 2 ? candles[candles.length - 2].close : null;
+  const currentPrice = signals[0]?.current_price;
+  const prevClose = candles[candles.length - 2]?.close;
   const priceChangePct =
-    currentPrice != null && prevClose
+    currentPrice !== undefined && prevClose !== undefined
       ? ((currentPrice - prevClose) / prevClose) * 100
-      : null;
+      : undefined;
 
   return (
     <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
@@ -404,12 +404,12 @@ export default function App() {
           </div>
 
           <div className="dashboard-controls-meta">
-            {currentPrice != null && (
+            {currentPrice !== undefined && (
               <span>
-                BTC ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {`BTC: $${Number(currentPrice).toLocaleString('de-DE', { maximumFractionDigits: 0 })}`}
               </span>
             )}
-            {priceChangePct != null && (
+            {priceChangePct !== undefined && (
               <span style={{ color: priceChangePct >= 0 ? '#16a34a' : '#dc2626' }}>
                 {`${priceChangePct >= 0 ? '+' : ''}${priceChangePct.toFixed(1)}%`}
               </span>
