@@ -124,6 +124,56 @@ export default function App() {
           .app-nav-dropdown {
             display: none;
           }
+          .app-header {
+            position: relative;
+            margin-bottom: 16px;
+          }
+          .app-header-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: start;
+          }
+          .app-header-title {
+            margin: 0;
+            padding: 0;
+            border: none;
+            background: none;
+            font-size: 28px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: #333;
+          }
+          .app-header-stripe {
+            display: inline-block;
+            width: 8px;
+            height: 1em;
+            background-color: #f7931a;
+            border-radius: 2px;
+            flex-shrink: 0;
+          }
+          .app-header-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background-color: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: bold;
+            justify-self: end;
+          }
+          .app-header-updated {
+            display: block;
+            margin-top: 6px;
+            font-size: 13px;
+            color: #666;
+            text-align: right;
+          }
           .dashboard-controls-row {
             display: flex;
             align-items: center;
@@ -141,27 +191,31 @@ export default function App() {
           }
           @media (max-width: 768px) {
             .app-header {
-              position: relative;
-              display: flex;
-              flex-wrap: wrap;
-              align-items: center;
-              justify-content: space-between;
-              gap: 6px 8px;
               margin-bottom: 0;
             }
-            .app-header-left,
-            .app-header-right {
-              display: contents;
+            .app-header-row {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              justify-content: space-between;
+              width: 100%;
+              padding: 12px 16px 8px 16px;
+              box-sizing: border-box;
             }
-            .app-header-title {
-              order: 1;
-              min-width: 0;
+            .app-header-stripe {
+              width: 4px;
+              height: 24px;
             }
             .app-header-live {
-              order: 2;
+              justify-self: auto;
+            }
+            .app-header-updated {
+              margin-top: 0;
+              padding: 0 16px;
+              font-size: 12px;
+              text-align: left;
             }
             .app-nav-hamburger {
-              order: 3;
               display: block;
               padding: 8px 12px;
               border: 1px solid #ccc;
@@ -171,12 +225,6 @@ export default function App() {
               line-height: 1;
               color: #666;
               cursor: pointer;
-            }
-            .app-header-updated {
-              order: 4;
-              width: 100%;
-              font-size: 12px !important;
-              text-align: left;
             }
             .app-nav {
               display: none;
@@ -238,73 +286,17 @@ export default function App() {
         `}
       </style>
 
-      <div
-        ref={navRef}
-        className="app-header"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr auto',
-          gap: 16,
-          marginBottom: 16,
-          alignItems: 'start',
-        }}
-      >
-        <div className="app-header-left">
+      <div ref={navRef} className="app-header">
+        <div className="app-header-row">
           <button
             type="button"
             className="app-header-title"
             onClick={() => navigateTo('dashboard')}
-            style={{
-              margin: 0,
-              padding: 0,
-              border: 'none',
-              background: 'none',
-              fontSize: 28,
-              lineHeight: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              cursor: 'pointer',
-              color: '#333',
-            }}
           >
-            <span
-              style={{
-                display: 'inline-block',
-                width: 8,
-                height: '1em',
-                backgroundColor: '#f7931a',
-                borderRadius: 2,
-                flexShrink: 0,
-              }}
-            />
+            <span className="app-header-stripe" />
             kryptonett.no
           </button>
-        </div>
-
-        <div
-          className="app-header-right"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: 6,
-          }}
-        >
-          <div
-            className="app-header-live"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 12px',
-              backgroundColor: '#dcfce7',
-              color: '#166534',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 'bold',
-            }}
-          >
+          <div className="app-header-live">
             <span
               style={{
                 width: 8,
@@ -316,20 +308,20 @@ export default function App() {
             />
             Live
           </div>
-          {lastUpdated && (
-            <span className="app-header-updated" style={{ fontSize: 13, color: '#666' }}>
-              Sist oppdatert: {lastUpdated.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-            </span>
-          )}
+          <button
+            type="button"
+            className="app-nav-hamburger"
+            onClick={() => setNavMenuOpen((open) => !open)}
+            aria-label="Meny"
+          >
+            ☰
+          </button>
         </div>
-        <button
-          type="button"
-          className="app-nav-hamburger"
-          onClick={() => setNavMenuOpen((open) => !open)}
-          aria-label="Meny"
-        >
-          ☰
-        </button>
+        {lastUpdated && (
+          <span className="app-header-updated">
+            Sist oppdatert: {lastUpdated.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </span>
+        )}
         <div className={`app-nav-dropdown${navMenuOpen ? ' open' : ''}`}>
           {NAV_ITEMS.map(({ id, label }) => (
             <button
