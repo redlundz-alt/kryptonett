@@ -86,7 +86,7 @@ export default function App() {
       : undefined;
 
   return (
-    <div style={{ maxWidth: 1200, width: '100%', margin: '0 auto', padding: '0 16px' }}>
+    <div className="app-main" style={{ maxWidth: 1200, width: '100%', margin: '0 auto', padding: '0 16px' }}>
       <style>
         {`
           @keyframes livePulse {
@@ -141,10 +141,12 @@ export default function App() {
           }
           @media (max-width: 768px) {
             .app-header {
+              position: relative;
               display: grid;
-              grid-template-columns: 1fr auto;
+              grid-template-columns: 1fr auto auto;
               grid-template-rows: auto auto;
-              gap: 6px 12px;
+              gap: 6px 8px;
+              margin-bottom: 0;
             }
             .app-header-left,
             .app-header-right {
@@ -153,52 +155,17 @@ export default function App() {
             .app-header-title {
               grid-column: 1;
               grid-row: 1;
+              min-width: 0;
             }
             .app-header-live {
               grid-column: 2;
               grid-row: 1;
               align-self: center;
             }
-            .app-header-updated {
-              grid-column: 1 / -1;
-              grid-row: 2;
-              font-size: 12px !important;
-              text-align: left;
-            }
-            .dashboard-controls-row {
-              flex-direction: column;
-              align-items: stretch;
-            }
-            .dashboard-controls-meta {
-              flex-wrap: wrap;
-            }
-            .timeframe-buttons {
-              width: 100%;
-              gap: 4px !important;
-            }
-            .timeframe-buttons button {
-              flex: 1;
-              padding: 6px 4px !important;
-              font-size: 13px;
-            }
-            .strategy-selector-wrap > div {
-              flex-wrap: nowrap !important;
-              overflow-x: auto;
-              -webkit-overflow-scrolling: touch;
-            }
-            .strategy-selector-wrap label {
-              flex-shrink: 0;
-              white-space: nowrap;
-            }
-            .app-nav {
-              position: relative;
-              display: flex;
-              justify-content: flex-end;
-            }
-            .app-nav-desktop {
-              display: none;
-            }
             .app-nav-hamburger {
+              grid-column: 3;
+              grid-row: 1;
+              align-self: center;
               display: block;
               padding: 8px 12px;
               border: 1px solid #ccc;
@@ -208,6 +175,15 @@ export default function App() {
               line-height: 1;
               color: #666;
               cursor: pointer;
+            }
+            .app-header-updated {
+              grid-column: 1 / -1;
+              grid-row: 2;
+              font-size: 12px !important;
+              text-align: left;
+            }
+            .app-nav {
+              display: none;
             }
             .app-nav-dropdown {
               display: none;
@@ -235,11 +211,39 @@ export default function App() {
             .app-nav-dropdown .app-nav-link.active {
               border-left-color: #f7931a;
             }
+            .dashboard-controls-row {
+              flex-direction: column;
+              align-items: stretch;
+            }
+            .dashboard-controls-meta {
+              flex-wrap: wrap;
+            }
+            .timeframe-buttons {
+              width: 100%;
+              gap: 4px !important;
+            }
+            .timeframe-buttons button {
+              flex: 1;
+              padding: 6px 4px !important;
+              font-size: 13px;
+            }
+            .strategy-selector-wrap > div {
+              flex-wrap: wrap !important;
+              overflow-x: visible;
+            }
+            .strategy-selector-wrap label {
+              flex-shrink: 0;
+              white-space: nowrap;
+            }
+            .signal-cards-grid > *:first-child {
+              margin-top: 12px;
+            }
           }
         `}
       </style>
 
       <div
+        ref={navRef}
         className="app-header"
         style={{
           display: 'grid',
@@ -322,20 +326,15 @@ export default function App() {
             </span>
           )}
         </div>
-      </div>
-
-      <nav
-        ref={navRef}
-        className="app-nav"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: 16,
-          paddingBottom: 0,
-          borderBottom: '1px solid #e5e7eb',
-        }}
-      >
-        <div className="app-nav-desktop">
+        <button
+          type="button"
+          className="app-nav-hamburger"
+          onClick={() => setNavMenuOpen((open) => !open)}
+          aria-label="Meny"
+        >
+          ☰
+        </button>
+        <div className={`app-nav-dropdown${navMenuOpen ? ' open' : ''}`}>
           {NAV_ITEMS.map(({ id, label }) => (
             <button
               key={id}
@@ -347,15 +346,19 @@ export default function App() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="app-nav-hamburger"
-          onClick={() => setNavMenuOpen((open) => !open)}
-          aria-label="Meny"
-        >
-          ☰
-        </button>
-        <div className={`app-nav-dropdown${navMenuOpen ? ' open' : ''}`}>
+      </div>
+
+      <nav
+        className="app-nav"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: 16,
+          paddingBottom: 0,
+          borderBottom: '1px solid #e5e7eb',
+        }}
+      >
+        <div className="app-nav-desktop">
           {NAV_ITEMS.map(({ id, label }) => (
             <button
               key={id}
@@ -471,6 +474,7 @@ export default function App() {
           <Chart candles={candles} />
 
           <div
+            className="signal-cards-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
