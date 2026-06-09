@@ -86,7 +86,7 @@ export default function App() {
       : undefined;
 
   return (
-    <div style={{ padding: 16, maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1200, width: '100%', margin: '0 auto', padding: '0 16px' }}>
       <style>
         {`
           @keyframes livePulse {
