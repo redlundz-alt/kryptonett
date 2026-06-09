@@ -497,7 +497,7 @@ export default function App() {
 
           <div style={{ marginTop: 16 }}>
             <h2 style={{ margin: '0 0 8px' }}>Signalhistorikk</h2>
-            <History history={filteredHistory} />
+            <History history={filteredHistory} selectedStrategies={selectedStrategies} />
           </div>
         </>
       )}

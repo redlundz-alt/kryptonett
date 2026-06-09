@@ -15,8 +15,15 @@ function formatOutcome(outcome) {
   return 'Avventer';
 }
 
-export default function History({ history }) {
-  if (!history || history.length === 0) {
+export default function History({ history, selectedStrategies }) {
+  const filteredHistory = history
+    ? history
+        .filter((entry) => selectedStrategies.includes(entry.strategy))
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 10)
+    : [];
+
+  if (filteredHistory.length === 0) {
     return null;
   }
 
@@ -32,7 +39,7 @@ export default function History({ history }) {
         </tr>
       </thead>
       <tbody>
-        {history.map((entry) => {
+        {filteredHistory.map((entry) => {
           const outcome = formatOutcome(entry.outcome);
           return (
             <tr key={entry.id}>

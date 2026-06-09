@@ -131,7 +131,7 @@ def get_statistics(timeframe="1h"):
     return stats
 
 
-def get_history(timeframe="1h", limit=50):
+def get_history(timeframe="1h", limit=10):
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -140,7 +140,7 @@ def get_history(timeframe="1h", limit=50):
                        timestamp, outcome, outcome_price, created_at, timeframe
                 FROM signals
                 WHERE timeframe = %s
-                ORDER BY created_at DESC
+                ORDER BY timestamp DESC
                 LIMIT %s
                 """,
                 (timeframe, limit),
