@@ -142,9 +142,10 @@ export default function App() {
           @media (max-width: 768px) {
             .app-header {
               position: relative;
-              display: grid;
-              grid-template-columns: 1fr auto auto;
-              grid-template-rows: auto auto;
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: space-between;
               gap: 6px 8px;
               margin-bottom: 0;
             }
@@ -153,19 +154,14 @@ export default function App() {
               display: contents;
             }
             .app-header-title {
-              grid-column: 1;
-              grid-row: 1;
+              order: 1;
               min-width: 0;
             }
             .app-header-live {
-              grid-column: 2;
-              grid-row: 1;
-              align-self: center;
+              order: 2;
             }
             .app-nav-hamburger {
-              grid-column: 3;
-              grid-row: 1;
-              align-self: center;
+              order: 3;
               display: block;
               padding: 8px 12px;
               border: 1px solid #ccc;
@@ -177,8 +173,8 @@ export default function App() {
               cursor: pointer;
             }
             .app-header-updated {
-              grid-column: 1 / -1;
-              grid-row: 2;
+              order: 4;
+              width: 100%;
               font-size: 12px !important;
               text-align: left;
             }
