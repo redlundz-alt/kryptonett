@@ -9,6 +9,8 @@ import Statistics from './components/Statistics.jsx';
 import StrategySelector from './components/StrategySelector.jsx';
 import { useMarketData } from './hooks/useMarketData.js';
 import Strategier from './pages/Strategier.jsx';
+import Verktoy from './pages/Verktoy.jsx';
+import PositionKalkulator from './pages/PositionKalkulator.jsx';
 
 const STRATEGIES = [
   { id: 'ema_crossover', name: 'EMA Crossover' },
@@ -506,7 +508,13 @@ export default function App() {
 
       {currentPage === 'strategier' && <Strategier />}
 
-      {(currentPage === 'verktoy' || currentPage === 'guider') && (
+      {currentPage === 'verktoy' && <Verktoy onNavigate={navigateTo} />}
+
+      {currentPage === 'position-kalkulator' && (
+        <PositionKalkulator onBack={() => navigateTo('verktoy')} />
+      )}
+
+      {currentPage === 'guider' && (
         <p style={{ textAlign: 'center', padding: '48px 0', color: '#666', margin: 0 }}>
           Kommer snart
         </p>
