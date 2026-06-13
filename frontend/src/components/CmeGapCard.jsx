@@ -12,6 +12,25 @@ function formatSignedPct(value) {
   return `${prefix}${Math.abs(value).toFixed(2)}%`;
 }
 
+function formatWeekStart(weekStart) {
+  return new Date(`${weekStart}T00:00:00`).toLocaleDateString('nb-NO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function formatDateTime(value) {
+  return new Date(value).toLocaleString('nb-NO');
+}
+
+const smallGrayText = {
+  margin: 0,
+  fontSize: 12,
+  color: '#888',
+  lineHeight: 1.5,
+};
+
 export default function CmeGapCard({ cmeGap }) {
   const currentGap = cmeGap?.current_gap;
   const cardStyle = {
@@ -27,18 +46,34 @@ export default function CmeGapCard({ cmeGap }) {
     return (
       <div style={{ ...cardStyle, borderTop: '3px solid #9ca3af' }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>CME Gap</h2>
-        <p style={{ margin: 0, fontSize: 14, color: '#666' }}>Ingen CME gap denne uken</p>
+        <p style={{ margin: '0 0 8px', fontSize: 14, color: '#666' }}>Ingen CME gap denne uken</p>
+        <p style={{ ...smallGrayText, marginBottom: 8 }}>
+          CME Bitcoin Futures stenger fredag kl 23:00 CET og åpner søndag kl 00:00 CET.
+          Gap registreres hvis prisen har beveget seg mellom stengning og åpning.
+        </p>
+        <p style={smallGrayText}>Neste registrering: fredag kl 23:10 CET</p>
       </div>
     );
   }
 
+  const weekLabel = currentGap.week_start ? formatWeekStart(currentGap.week_start) : '';
+  const registeredAt = currentGap.created_at ? formatDateTime(currentGap.created_at) : '';
+
   if (currentGap.filled) {
     const filledAt = currentGap.filled_at
-      ? new Date(currentGap.filled_at).toLocaleString('nb-NO')
+      ? formatDateTime(currentGap.filled_at)
       : '';
     return (
       <div style={{ ...cardStyle, borderTop: '3px solid #9ca3af' }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>CME Gap</h2>
+        {weekLabel && (
+          <p style={{ margin: '0 0 4px', fontSize: 14, color: '#333' }}>Uke: {weekLabel}</p>
+        )}
+        {registeredAt && (
+          <p style={{ margin: '0 0 8px', fontSize: 14, color: '#333' }}>
+            Registrert: {registeredAt}
+          </p>
+        )}
         <p style={{ margin: 0, fontSize: 14, color: '#666' }}>
           Status: Fylt ✅ — {filledAt}
         </p>
@@ -55,6 +90,14 @@ export default function CmeGapCard({ cmeGap }) {
   return (
     <div style={{ ...cardStyle, borderTop: `3px solid ${borderColor}` }}>
       <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>CME Gap</h2>
+      {weekLabel && (
+        <p style={{ margin: '0 0 4px', fontSize: 14, color: '#333' }}>Uke: {weekLabel}</p>
+      )}
+      {registeredAt && (
+        <p style={{ margin: '0 0 8px', fontSize: 14, color: '#333' }}>
+          Registrert: {registeredAt}
+        </p>
+      )}
       <p style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 'bold', color: borderColor }}>{headline}</p>
       <p style={{ margin: '0 0 4px', fontSize: 14, color: '#333' }}>
         Fredag close: {formatUsd(currentGap.friday_close)}
