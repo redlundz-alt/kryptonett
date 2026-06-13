@@ -8,8 +8,29 @@ from pathlib import Path
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+from cme_tracker import (
+    check_gap_filled,
+    fetch_cme_friday_close,
+    fetch_cme_sunday_open,
+    get_current_week_start,
+    should_fetch_friday_close,
+    should_fetch_sunday_open,
+)
 from data_fetcher import fetch_candles
-from database import evaluate_outcomes, get_history, get_signal_state, get_statistics, init_db, save_signal, save_signal_state
+from database import (
+    evaluate_outcomes,
+    get_current_gap,
+    get_gap_history,
+    get_history,
+    get_signal_state,
+    get_statistics,
+    init_db,
+    save_friday_close,
+    save_signal,
+    save_signal_state,
+    save_sunday_open,
+    update_gap_filled,
+)
 from indicator import add_atr, add_ema, add_ema_long, add_macd, add_rsi, add_rsi_direction
 from strategy_runner import run_strategies
 
@@ -45,6 +66,25 @@ def seconds_until_next_close(timeframe):
     if remaining == 0:
         return interval
     return remaining
+
+
+def process_cme_gap(current_price):
+    week_start = get_current_week_start()
+
+    if should_fetch_friday_close():
+        friday_close = fetch_cme_friday_close()
+        if friday_close is not None:
+            save_friday_close(week_start, friday_close)
+
+    if should_fetch_sunday_open():
+        sunday_open = fetch_cme_sunday_open()
+        if sunday_open is not None:
+            save_sunday_open(week_start, sunday_open)
+
+    gap = get_current_gap()
+    if gap and not gap.get("filled") and gap.get("direction") is not None:
+        if check_gap_filled(current_price, gap):
+            update_gap_filled(gap["id"], datetime.now(timezone.utc))
 
 
 def fetch_loop():
@@ -87,6 +127,7 @@ def fetch_loop():
                     last["close"],
                 )
             evaluate_outcomes(candles)
+            process_cme_gap(last["close"])
             print(f"Initial fetch {timeframe} at {datetime.now(timezone.utc).isoformat()}")
     except Exception:
         pass
@@ -130,6 +171,7 @@ def fetch_loop():
                     last["close"],
                 )
             evaluate_outcomes(candles)
+            process_cme_gap(last["close"])
             print(f"Fetched {next_timeframe} at {datetime.now(timezone.utc).isoformat()}")
         except Exception:
             pass
@@ -258,6 +300,14 @@ def api_statistics():
     if timeframe is None:
         return jsonify({"message": "Invalid timeframe"}), 400
     return jsonify(get_statistics(timeframe))
+
+
+@app.route("/api/cme-gap")
+def api_cme_gap():
+    return jsonify({
+        "current_gap": get_current_gap(),
+        "history": get_gap_history(8),
+    })
 
 
 if __name__ == "__main__":

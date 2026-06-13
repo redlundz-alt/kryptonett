@@ -185,3 +185,118 @@ def save_signal_state(timeframe, strategy, retning, crossover_bekreftet):
                 (timeframe, strategy, retning, crossover_bekreftet),
             )
         conn.commit()
+
+
+def save_friday_close(week_start, friday_close):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT 1 FROM cme_gaps WHERE week_start = %s",
+                (week_start,),
+            )
+            if cur.fetchone():
+                return
+            cur.execute(
+                """
+                INSERT INTO cme_gaps (week_start, friday_close)
+                VALUES (%s, %s)
+                """,
+                (week_start, friday_close),
+            )
+        conn.commit()
+
+
+def save_sunday_open(week_start, sunday_open):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT friday_close, sunday_open
+                FROM cme_gaps
+                WHERE week_start = %s
+                """,
+                (week_start,),
+            )
+            row = cur.fetchone()
+            if not row or row[1] is not None or row[0] is None:
+                return
+            friday_close = row[0]
+            gap_size = sunday_open - friday_close
+            gap_pct = (gap_size / friday_close) * 100
+            direction = "up" if gap_size > 0 else "down"
+            cur.execute(
+                """
+                UPDATE cme_gaps
+                SET sunday_open = %s,
+                    gap_size = %s,
+                    gap_pct = %s,
+                    direction = %s
+                WHERE week_start = %s AND sunday_open IS NULL
+                """,
+                (sunday_open, gap_size, gap_pct, direction, week_start),
+            )
+        conn.commit()
+
+
+def _gap_row_to_dict(row):
+    gap = dict(row)
+    if gap.get("week_start") is not None:
+        gap["week_start"] = gap["week_start"].isoformat()
+    if gap.get("filled_at") is not None:
+        gap["filled_at"] = gap["filled_at"].isoformat()
+    if gap.get("created_at") is not None:
+        gap["created_at"] = gap["created_at"].isoformat()
+    return gap
+
+
+def get_current_gap():
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, week_start, friday_close, sunday_open, gap_size, gap_pct,
+                       direction, filled, filled_at, created_at
+                FROM cme_gaps
+                ORDER BY week_start DESC
+                LIMIT 1
+                """,
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            columns = [desc[0] for desc in cur.description]
+
+    return _gap_row_to_dict(dict(zip(columns, row)))
+
+
+def get_gap_history(limit=8):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, week_start, friday_close, sunday_open, gap_size, gap_pct,
+                       direction, filled, filled_at, created_at
+                FROM cme_gaps
+                ORDER BY week_start DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            columns = [desc[0] for desc in cur.description]
+            rows = cur.fetchall()
+
+    return [_gap_row_to_dict(dict(zip(columns, row))) for row in rows]
+
+
+def update_gap_filled(gap_id, filled_at):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE cme_gaps
+                SET filled = TRUE, filled_at = %s
+                WHERE id = %s
+                """,
+                (filled_at, gap_id),
+            )
+        conn.commit()

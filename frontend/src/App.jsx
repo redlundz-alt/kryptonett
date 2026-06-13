@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import AffiliateSection from './components/AffiliateSection.jsx';
 import Chart from './components/Chart.jsx';
 import ConfluenceBox from './components/ConfluenceBox.jsx';
+import CmeGapCard from './components/CmeGapCard.jsx';
+import CmeGapHistory from './components/CmeGapHistory.jsx';
 import Footer from './components/Footer.jsx';
 import History from './components/History.jsx';
 import SignalCard from './components/SignalCard.jsx';
@@ -39,7 +41,7 @@ export default function App() {
   const navRef = useRef(null);
   const [timeframe, setTimeframe] = useState('1h');
   const [selectedStrategies, setSelectedStrategies] = useState(['ema_crossover']);
-  const { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp } = useMarketData(timeframe);
+  const { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp, cmeGap } = useMarketData(timeframe);
 
   const activeSignals = signals.filter((s) => selectedStrategies.includes(s.strategy));
   const filteredStatistics = statistics
@@ -490,12 +492,16 @@ export default function App() {
 
           <ConfluenceBox signals={activeSignals} />
 
+          <CmeGapCard cmeGap={cmeGap} />
+
           <AffiliateSection />
 
           <div style={{ marginTop: 16 }}>
             <h2 style={{ margin: '0 0 8px' }}>Statistikk</h2>
             <Statistics statistics={filteredStatistics} />
           </div>
+
+          <CmeGapHistory cmeGap={cmeGap} />
 
           <div style={{ marginTop: 16 }}>
             <h2 style={{ margin: '0 0 8px' }}>Signalhistorikk</h2>

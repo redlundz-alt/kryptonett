@@ -18,6 +18,7 @@ export function useMarketData(timeframe) {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [isWakingUp, setIsWakingUp] = useState(false);
+  const [cmeGap, setCmeGap] = useState(null);
   const prevCandleTimestampRef = useRef(null);
 
   useEffect(() => {
@@ -101,5 +102,32 @@ export function useMarketData(timeframe) {
     };
   }, [timeframe]);
 
-  return { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp };
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCmeGap() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/cme-gap`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch CME gap');
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setCmeGap(data);
+        }
+      } catch {
+        // CME gap fetch failure should not block dashboard
+      }
+    }
+
+    fetchCmeGap();
+    const interval = setInterval(fetchCmeGap, 5 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  return { candles, signals, history, statistics, loading, error, lastUpdated, isWakingUp, cmeGap };
 }
