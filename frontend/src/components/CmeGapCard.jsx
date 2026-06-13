@@ -24,6 +24,22 @@ function formatDateTime(value) {
   return new Date(value).toLocaleString('nb-NO');
 }
 
+function getNextFridayDate() {
+  const date = new Date();
+  const daysUntilFriday = (5 - date.getDay() + 7) % 7 || 7;
+  date.setDate(date.getDate() + daysUntilFriday);
+  return date;
+}
+
+function formatNextRegistration() {
+  const nextFriday = getNextFridayDate();
+  const dateLabel = nextFriday.toLocaleDateString('nb-NO', {
+    day: 'numeric',
+    month: 'long',
+  });
+  return `Neste registrering: fredag ${dateLabel} kl 23:10 CET`;
+}
+
 const smallGrayText = {
   margin: 0,
   fontSize: 12,
@@ -51,7 +67,7 @@ export default function CmeGapCard({ cmeGap }) {
           CME Bitcoin Futures stenger fredag kl 23:00 CET og åpner søndag kl 00:00 CET.
           Gap registreres hvis prisen har beveget seg mellom stengning og åpning.
         </p>
-        <p style={smallGrayText}>Neste registrering: fredag kl 23:10 CET</p>
+        <p style={smallGrayText}>{formatNextRegistration()}</p>
       </div>
     );
   }
