@@ -127,6 +127,8 @@ def add_macd(candles: list[dict]) -> list[dict]:
                 macd_signal_line[idx] = signal_value
 
     for i, candle in enumerate(candles):
+        candle["ema12"] = ema12[i]
+        candle["ema26"] = ema26[i]
         if i < null_count:
             candle["macd"] = None
             candle["macd_signal"] = None

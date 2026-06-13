@@ -463,7 +463,7 @@ export default function App() {
 
       {!loading && !error && (
         <>
-          <Chart candles={candles} />
+          <Chart candles={candles} selectedStrategies={selectedStrategies} />
 
           <div
             className="signal-cards-grid"
